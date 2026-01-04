@@ -1,0 +1,22 @@
+{
+    "imagenes": [
+        {
+            "id": 1,
+            "nombre": "paisaje_montana",
+            "fecha": "2025-11-22",
+            "imagen": "https://example.com/imagenes/paisaje_montana.jpg"
+        },
+        {
+            "id": 2,
+            "nombre": "ciudad_nocturna",
+            "fecha": "2025-11-20",
+            "imagen": "https://example.com/imagenes/ciudad_nocturna.jpg"
+        },
+        {
+            "id": 3,
+            "nombre": "playa_atardecer",
+            "fecha": "2025-11-18",
+            "imagen": "https://example.com/imagenes/playa_atardecer.jpg"
+        }
+    ]
+}
