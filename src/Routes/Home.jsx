@@ -1,6 +1,5 @@
 import React from 'react'
 import AudioPlayer from '../components/AudioPlayer'
-import cocheImg from '../assets/coche.jpg'
 import RightBar from '../components/RightBar'
 import LeftBar from '../components/LeftBar'
 

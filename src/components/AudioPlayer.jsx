@@ -1,8 +1,4 @@
 import { useEffect, useRef, useState } from "react"
-import nextIcon from '../assets/svg/next.svg'
-import playIcon from '../assets/svg/play.svg'
-import pauseIcon from '../assets/svg/pause.svg'
-import loopIcon from '../assets/svg/loop.svg'
 import useFetch from "../hooks/useFetch"
 
 
@@ -127,16 +123,16 @@ const AudioPlayer = () => {
                     <img src={currentSong.cover} alt={currentSong.title} className='w-full aspect-square'/>
                     <div className='grid grid-rows-4'>
                         <button className='bg-white cursor-pointer transition-colors active:bg-gray-200 px-3' onClick={skipBack}>
-                            <img src={nextIcon} className="w-5 aspect-square" />
+                            <img src='/svg/next.svg' className="w-5 aspect-square" />
                         </button>
                         <button className={`px-3 cursor-pointer transition-colors ${isPlaying ? "bg-gray-200" : "bg-white"}`} onClick={playPause}>
-                            <img src={isPlaying ? pauseIcon : playIcon} className="w-5 aspect-square" />
+                            <img src={isPlaying ? '/svg/pause.svg' : '/svg/play.svg'} className="w-5 aspect-square" />
                         </button>
                         <button className='bg-white cursor-pointer transition-colors active:bg-gray-200 px-3' onClick={skipNext}>
-                            <img src={nextIcon} className="transform -scale-x-100 w-5 aspect-square" />
+                            <img src='/svg/next.svg' className="transform -scale-x-100 w-5 aspect-square" />
                         </button>
                         <button className={`px-3 cursor-pointer transition-colors ${autoplay ? "bg-gray-200" : "bg-white"}`} onClick={toggleAutoplay}>
-                            <img src={loopIcon} className="w-5 aspect-square" />
+                            <img src='/svg/loop.svg' className="w-5 aspect-square" />
                         </button>
                     </div>
                 </div>

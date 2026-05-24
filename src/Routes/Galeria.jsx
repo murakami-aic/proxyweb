@@ -1,4 +1,3 @@
-import imgData from '../assets/imgData'
 import { useRef, useEffect, useState } from 'react'
 import RightBar from '../components/RightBar'
 import useFetch from '../hooks/useFetch'
