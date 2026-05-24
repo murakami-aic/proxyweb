@@ -14,3 +14,14 @@
   --color-primary-800: oklch(0.52 0.035 95);
   --color-primary-900: oklch(0.42 0.03 95);
 }
+@font-face {
+  font-family: 'Terminus';
+  src: url('/fonts/terminus/Terminus.woff2') format('woff2'),
+       url('/fonts/terminus/Terminus.woff') format('woff');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+body {
+  font-family: 'Terminus', monospace;
+}

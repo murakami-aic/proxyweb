@@ -1,11 +1,17 @@
 import { useEffect, useRef, useState } from "react"
-import songsData from '../assets/audios'
+import nextIcon from '../assets/svg/next.svg'
+import playIcon from '../assets/svg/play.svg'
+import pauseIcon from '../assets/svg/pause.svg'
+import loopIcon from '../assets/svg/loop.svg'
+import useFetch from "../hooks/useFetch"
+
 
 const AudioPlayer = () => {
+    const {data: musicData, loading, error} = useFetch('/api/musica')
 
-    const [songs, setSongs] = useState(songsData)
+    const [songs, setSongs] = useState([])
     const [isPlaying, setIsPlaying] = useState(false)
-    const [currentSong, setCurrentSong] = useState(songsData[0])
+    const [currentSong, setCurrentSong] = useState([])
     const [timeBar, setTimeBar] = useState("00:00")
     const [autoplay, setAutoplay] = useState(false)
 
@@ -13,18 +19,29 @@ const AudioPlayer = () => {
     const audioElem = useRef()
     const clickRef = useRef()
 
-    const duracionTotal = currentSong.length ?? 0
-    const porcentaje = currentSong.progress ?? 0
-    const minutes = Math.floor(duracionTotal / 60)
-    const seconds = Math.trunc(duracionTotal % 60).toString().padStart(2, '0')
+    const duracionTotal = 0
+    const porcentaje = 0
+    const minutes = 0
+    const seconds = 0
 
     const onPlaying = () => {
         const cTime = audioElem.current.currentTime
         setCurrentSong({
             ...currentSong,
-            progress: (cTime / currentSong.length) * 100
+            progress: (cTime / currentSong.duracion) * 100
         })
     }
+
+    useEffect(() => {
+        if(musicData && musicData.length > 0){
+            setSongs[musicData]
+            setCurrentSong[musicData[0]]
+            duracionTotal = currentSong.duracion ?? 0
+            porcentaje = currentSong.progress ?? 0
+            minutes = Math.floor(duracionTotal / 60)
+            seconds = Math.trunc(duracionTotal % 60).toString().padStart(2, '0')
+        }
+    }, [musicData])
 
     useEffect(() => {
         const segundosActuales = (porcentaje / 100) * duracionTotal
@@ -64,7 +81,7 @@ const AudioPlayer = () => {
         const index = songs.findIndex(song => song.title === currentSong.title)
         setCurrentSong(index === 0 ? songs[songs.length - 1] : songs[index - 1])
     }
-
+    
     const skipNext = () => {
         audioElem.current.pause()
         const index = songs.findIndex(song => song.title === currentSong.title)
@@ -95,7 +112,7 @@ const AudioPlayer = () => {
     }
 
     return (
-        <div className="bg-main p-3 w-full fixed bottom-0 left-0 right-0 z-50">
+        <div className="w-full bg-gray-200 border-1 border-gray-400">
 
             <audio
                 src={currentSong.url}
@@ -104,24 +121,31 @@ const AudioPlayer = () => {
                 onEnded={handleSongEnd}
             />
 
-            <div className='grid lg:grid-cols-4 items-center m-auto justify-items-center w-4/5'>
+            <div className='flex flex-col items-center m-auto justify-items-center'>
                 
-                <div className='col-start-1'>
-                    <button className='bg-white p-1' onClick={skipBack}>Back</button>
-                    <button className='bg-white p-1 ml-1 mr-1' onClick={playPause}>
-                        {isPlaying ? 'Pause' : 'Play'}
-                    </button>
-                    <button className='bg-white p-1' onClick={skipNext}>Next</button>
-                    <button className='bg-white ml-5 p-1' onClick={toggleAutoplay}>
-                        {autoplay ? "Autoplay ON" : "Autoplay OFF"}
-                    </button>
+                <div className="w-full flex flex-row">
+                    <img src={currentSong.cover} alt={currentSong.title} className='w-full aspect-square'/>
+                    <div className='grid grid-rows-4'>
+                        <button className='bg-white cursor-pointer transition-colors active:bg-gray-200 px-3' onClick={skipBack}>
+                            <img src={nextIcon} className="w-5 aspect-square" />
+                        </button>
+                        <button className={`px-3 cursor-pointer transition-colors ${isPlaying ? "bg-gray-200" : "bg-white"}`} onClick={playPause}>
+                            <img src={isPlaying ? pauseIcon : playIcon} className="w-5 aspect-square" />
+                        </button>
+                        <button className='bg-white cursor-pointer transition-colors active:bg-gray-200 px-3' onClick={skipNext}>
+                            <img src={nextIcon} className="transform -scale-x-100 w-5 aspect-square" />
+                        </button>
+                        <button className={`px-3 cursor-pointer transition-colors ${autoplay ? "bg-gray-200" : "bg-white"}`} onClick={toggleAutoplay}>
+                            <img src={loopIcon} className="w-5 aspect-square" />
+                        </button>
+                    </div>
                 </div>
-
-                <div className='flex content-around w-full lg:col-span-2 lg:col-start-2 items-center'>
+            
+                <div className='flex content-around w-full lg:col-span-2 lg:col-start-2 items-center border-t-1 border-gray-400'>
                     <div>{timeBar}</div>
 
                     <div
-                        className='bg-pbar h-2 w-full cursor-pointer ml-2 mr-2 relative'
+                        className='bg-gray-400 h-2 w-full cursor-pointer ml-2 mr-2 relative'
                         onClick={checkTime}
                         ref={clickRef}
                     >
