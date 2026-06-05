@@ -1,11 +1,16 @@
-import React from 'react'
+
 
 function LeftBar() {
-  return (
-    <div className="hidden sm:block bg-gray-200 p-4 border-1 border-black">
-        Content 1
-    </div>  
-  )
+  
+	return (
+		<div className='hidden sm:block p-2 border-1'>
+			<div className='h-full px-2 py-3'>
+
+
+
+			</div>
+		</div>  
+	)
 }
 
 export default LeftBar

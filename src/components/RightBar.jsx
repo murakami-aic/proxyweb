@@ -2,13 +2,13 @@ import React from 'react'
 import AudioPlayer from './AudioPlayer'
 
 function RightBar() {
-  return (
-    <div className="hidden sm:block bg-gray-200 border-1 border-black p-2">
-        <div className='bg-white px-2 py-3'>
-            <AudioPlayer />  
-        </div>
-    </div>  
-  )
+	return (
+		<div className='hidden sm:block border-1 p-2'>
+			<div className='px-2 py-3'>
+				<AudioPlayer />  
+			</div>
+		</div>  
+	)
 }
 
 export default RightBar
