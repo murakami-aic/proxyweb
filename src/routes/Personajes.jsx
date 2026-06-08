@@ -73,7 +73,7 @@ function Personajes() {
 	}
 
 	return (
-		<div className='h-full w-full min-h-0 p-2 border-1 overflow-y-auto'>
+		<div className='h-full w-full min-h-0 p-2 border overflow-y-auto'>
 			{isMenu && (
 				<MenuPersonajes personajes={personajes} onSelect={handleSelect} />
 			)}

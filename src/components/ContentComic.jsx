@@ -2,7 +2,7 @@ import useFetch from '../hooks/useFetch'
 
 function ContentComic({ comicSelect, onPrev, onNext, onBack, hasPrev, hasNext }) {
 	const { data: imgData } = useFetch('/api/comic/' + comicSelect.id)
-	const imagenes = [...imgData].sort((a, b) => a.fecha - b.fecha)
+	const imagenes = [...(imgData ?? [])].sort((a, b) => a.fecha - b.fecha)
 
 	return (
 		<>

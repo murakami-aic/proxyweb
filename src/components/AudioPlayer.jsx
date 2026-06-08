@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import useFetch from '../hooks/useFetch'
 
+const URL_PREFIX = 'https://lucesdefalsocontacto.com/'
 
 const AudioPlayer = () => {
 	const { data: musicData } = useFetch('/api/musica')
@@ -14,7 +15,6 @@ const AudioPlayer = () => {
 
 	const currentMusic = music[currentIndex] ?? null
 	const progress = duration ? currentTime / duration : 0
-	const URL_PREFIX = 'https://lucesdefalsocontacto.com/'
 
 	const audioElem = useRef()
 	const clickRef = useRef()
@@ -44,26 +44,26 @@ const AudioPlayer = () => {
 
 	useEffect(() => {
 		const audio = audioElem.current
-		if(!audio) return
+		if (!audio) return
 
-		if(isPlaying){
-			audio.play().catch(() => {})
-		} else{
+		if (isPlaying) {
+			audio.play().catch(() => { })
+		} else {
 			audio.pause()
 		}
-        
+
 	}, [isPlaying, currentMusic])
-    
+
 
 	const playPause = () => setIsPlaying(prev => !prev)
 
 	const skipBack = () => {
-		if(!music.length) return
+		if (!music.length) return
 		setCurrentIndex(prev => prev === 0 ? music.length - 1 : prev - 1)
 	}
 
 	const skipNext = () => {
-		if(!music.length) return
+		if (!music.length) return
 		setCurrentIndex(prev => prev === music.length - 1 ? 0 : prev + 1)
 	}
 
@@ -80,50 +80,67 @@ const AudioPlayer = () => {
 		setAutoplay(prev => !prev)
 	}
 	const handleSongEnd = () => {
-		if(!autoplay) {
+		if (!autoplay) {
 			setIsPlaying(false)
 			return
 		}
 		skipNext()
-		setIsPlaying(true) 
+		setIsPlaying(true)
 	}
 
 	return (
-		<div className='w-full border-1'>
+		<div className='w-full border'>
 
 			<audio
-				src={URL_PREFIX + currentMusic?.url }
+				src={URL_PREFIX + currentMusic?.url}
 				ref={audioElem}
 				onTimeUpdate={onPlaying}
 				onLoadedMetadata={onLoadedMetadata}
 				onEnded={handleSongEnd}
+				volume='50%'
 			/>
 
 			<div className='flex flex-col items-center m-auto justify-items-center'>
-                
-				<div className='w-full flex'>
-					<img src={URL_PREFIX + currentMusic?.portada} alt={currentMusic?.name} className='w-4/5 aspect-square'/>
-					<div className='grid grid-rows-4'>
-						<button className='cursor-pointer transition-colors active:bg-gray-200 px-3' onClick={skipBack}>
-							<img src='/svg/next.svg' className='w-5 aspect-square' />
+
+				<div className='w-full flex items-stretch'>
+					<img
+						src={URL_PREFIX + currentMusic?.portada}
+						alt={currentMusic?.name}
+						className='w-4/5 aspect-square object-cover'
+					/>
+					<div className='flex-1 grid grid-rows-4'>
+						<button
+							className='flex items-center justify-center cursor-pointer active:bg-gray-200'
+							onClick={skipBack}
+						>
+							<img src='/svg/next.svg' className='w-3 h-3 md:w-5 md:h-5 rotate-180' />
 						</button>
-						<button className={`px-3 cursor-pointer transition-colors ${isPlaying ? 'bg-gray-200' : ''}`} onClick={playPause}>
-							<img src={isPlaying ? '/svg/pause.svg' : '/svg/play.svg'} className='w-5 aspect-square' />
+						<button
+							className={`flex items-center justify-center cursor-pointer ${isPlaying ? 'bg-gray-200' : ''}`}
+							onClick={playPause}
+						>
+							<img src={isPlaying ? '/svg/pause.svg' : '/svg/play.svg'} className='w-3 h-3 md:w-5 md:h-5' />
 						</button>
-						<button className='cursor-pointer transition-colors active:bg-gray-200 px-3' onClick={skipNext}>
-							<img src='/svg/next.svg' className='transform -scale-x-100 w-5 aspect-square' />
+						<button
+							className='flex items-center justify-center cursor-pointer active:bg-gray-200'
+							onClick={skipNext}
+						>
+							<img src='/svg/next.svg' className='w-3 h-3 md:w-5 md:h-5' />
 						</button>
-						<button className={`px-3 cursor-pointer transition-colors ${autoplay ? 'bg-gray-200' : ''}`} onClick={toggleAutoplay}>
-							<img src='/svg/loop.svg' className='w-5 aspect-square' />
+						<button
+							className={`flex items-center justify-center cursor-pointer ${autoplay ? 'bg-gray-200' : ''}`}
+							onClick={toggleAutoplay}
+						>
+							<img src='/svg/loop.svg' className='w-3 h-3 md:w-5 md:h-5' />
 						</button>
 					</div>
 				</div>
-            
-				<div className='flex content-around w-full lg:col-span-2 lg:col-start-2 items-center border-t-1'>
+
+				<div className='flex content-center items-center w-full gap-1 px-1'>
 					<div>{formatTime(currentTime)}</div>
 
 					<div
-						className='bg-gray-300 h-2 w-full cursor-pointer ml-2 mr-2 relative'
+						className='bg-gray-300 h-2 w-full cursor-pointer'
 						onClick={checkTime}
 						ref={clickRef}
 					>
@@ -135,7 +152,7 @@ const AudioPlayer = () => {
 
 					<div>{formatTime(duration)}</div>
 				</div>
-                
+
 				<h3>{currentMusic?.name} - {currentMusic?.artist} </h3>
 
 			</div>

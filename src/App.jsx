@@ -44,11 +44,11 @@ function App() {
 		: 'sm:grid-cols-[1fr_5fr_2fr]'
 
 	return (
-		<div className='h-screen w-full flex flex-col items-center'>
+		<div className='h-screen w-full flex flex-col gap-y-4 items-center p-1'>
 
-			<div className='w-[99%] sm:w-10/12 md:w-9/12 lg:w-7/12 xl:w-3/6 2xl:w-5/12 mt-3 border'>
-				<img src='/gato.jpg' alt='Film 1' className='w-full h-16 md:h-20 lg:h-24 object-cover' />
-				<div className='py-1 w-full grid grid-cols-4 text-center items-center text-sm md:text-base'>
+			<div className='w-full max-w-[880px] border'>
+				<img src='/mockup.jpg' alt='mockup' className='w-full min-h-16 h-[clamp(4rem,9.4vw,6rem)] object-cover' />
+				<div className='border-t py-1 w-full grid grid-cols-4 text-center items-center text-sm md:text-base'>
 					<Link to='/'>inicio</Link>
 					<Link to='/personajes'>personajes</Link>
 					<Link to='/comic'>comic</Link>
@@ -56,7 +56,7 @@ function App() {
 				</div>
 			</div>
 
-			<div className={`h-full self-stretch mx-0.5 sm:mx-auto sm:w-11/12 lg:w-10/12 xl:w-4/5 2xl:w-3/5 mt-3 min-h-0 sm:grid ${gridCols} gap-x-2 md:gap-x-3 lg:gap-x-4`}>
+			<div className={`h-full min-h-0 w-full max-w-[1220px] sm:grid ${gridCols} gap-x-2 md:gap-x-3 lg:gap-x-4`}>
 
 				{!isFullPage && <LeftBar />}
 

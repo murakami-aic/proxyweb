@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import ContentComic from '../components/ContentComic'
 import MenuComic from '../components/MenuComic'
@@ -8,9 +8,14 @@ const Comic = () => {
 	const location = useLocation()
 	const { data: comics } = useFetch('/api/comics')
 	const [currentIdx, setCurrentIdx] = useState(null)
+	const scrollRef = useRef(null)
 
 	const isMenu = currentIdx === null
 	const isHidden = location.pathname !== '/comic'
+
+	useEffect(() => {
+		scrollRef.current?.scrollTo(0, 0)
+	}, [currentIdx])
 
 	const handleSelect = (comic) => {
 		const idx = comics.findIndex(c => c.id === comic.id)
@@ -18,7 +23,7 @@ const Comic = () => {
 	}
 
 	return (
-		<div className={`h-full min-h-0 px-2 py-3 border-1 overflow-y-auto ${isHidden ? 'hidden' : ''}`}>
+		<div ref={scrollRef} className={`h-full min-h-0 px-2 py-3 border-1 overflow-y-auto ${isHidden ? 'hidden' : ''}`}>
 			{isMenu && <MenuComic comics={comics} onSelect={handleSelect} />}
 			{!isMenu && (
 				<ContentComic

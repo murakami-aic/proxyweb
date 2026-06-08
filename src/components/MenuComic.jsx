@@ -6,13 +6,13 @@ const comicInfo = {
 
 function MenuComic({ comics, onSelect }) {
 	return (
-		<div className='flex flex-col md:flex-row gap-3 lg:gap-4 h-full py-3 px-2 md:px-3 border'>
+		<div className='flex flex-col md:flex-row h-full gap-x-2'>
 
 			<div className='flex flex-col gap-2 md:w-2/5 lg:w-1/3 md:shrink-0'>
 				<img
 					src={comicInfo.portada}
 					alt={comicInfo.titulo}
-					className='w-full aspect-[2/3] object-cover'
+					className=' aspect-[2/3] object-cover'
 				/>
 				<h1 className='font-bold text-base md:text-lg'>{comicInfo.titulo}</h1>
 				<p className='text-sm'>{comicInfo.descripcion}</p>
