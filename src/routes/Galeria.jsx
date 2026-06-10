@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import useFetch from '../hooks/useFetch'
-import { useLocation } from 'react-router-dom'
 import ImageModal from '../components/ImageModal'
 
 const breakpoints = [
@@ -18,14 +17,10 @@ function getColCount() {
 const URL_PREFIX = 'https://lucesdefalsocontacto.com/'
 
 const Galeria = () => {
-	const location = useLocation()
 	const { data: imgData } = useFetch('/api/imagenes')
 	const [visible, setVisible] = useState(15)
 	const [colCount, setColCount] = useState(getColCount)
 	const [selectedIdx, setSelectedIdx] = useState(null)
-	const containerRef = useRef(null)
-
-	const isHidden = location.pathname !== '/galeria'
 
 	useEffect(() => {
 		const onResize = () => setColCount(getColCount())
@@ -33,23 +28,18 @@ const Galeria = () => {
 		return () => window.removeEventListener('resize', onResize)
 	}, [])
 
-	useEffect(() => {
-		const container = containerRef.current
-		if (!container) return
-
-		const handleScroll = () => {
-			if (container.clientHeight + container.scrollTop >= container.scrollHeight - 400) {
-				setVisible(prev => prev + 6)
-			}
+	const handleScroll = () => {
+		const scrollY = window.scrollY
+		const height = document.documentElement.scrollHeight - window.innerHeight
+		if (height - scrollY < 400) {
+			setVisible(prev => prev + 6)
 		}
-
-		container.addEventListener('scroll', handleScroll)
-		return () => container.removeEventListener('scroll', handleScroll)
-	}, [])
+	}
 
 	useEffect(() => {
-		if (isHidden) setSelectedIdx(null)
-	}, [isHidden])
+		window.addEventListener('scroll', handleScroll)
+		return () => window.removeEventListener('scroll', handleScroll)
+	}, [])
 
 	const columns = Array.from({ length: colCount }, () => [])
 	imgData.slice(0, visible).forEach((img, i) => {
@@ -64,10 +54,7 @@ const Galeria = () => {
 
 	return (
 		<>
-			<div
-				ref={containerRef}
-				className={`h-full min-h-0 px-2 py-3 border-1 overflow-y-scroll ${isHidden ? 'hidden' : ''}`}
-			>
+			<div className='px-2 py-3 border-1'>
 				<div className='flex gap-1 md:gap-2'>
 					{columns.map((col, ci) => (
 						<div key={ci} className='flex-1 min-w-0 flex flex-col gap-1 md:gap-2'>
@@ -86,14 +73,12 @@ const Galeria = () => {
 				</div>
 			</div>
 
-			{!isHidden && (
-				<ImageModal
-					images={modalImages}
-					currentIdx={selectedIdx}
-					onClose={() => setSelectedIdx(null)}
-					onIndexChange={setSelectedIdx}
-				/>
-			)}
+			<ImageModal
+				images={modalImages}
+				currentIdx={selectedIdx}
+				onClose={() => setSelectedIdx(null)}
+				onIndexChange={setSelectedIdx}
+			/>
 		</>
 	)
 }

@@ -89,7 +89,7 @@ const AudioPlayer = () => {
 	}
 
 	return (
-		<div className='w-full border'>
+		<div className='fixed bottom-0 left-0 w-full border px-1 md:px-10 py-1 bg-white'>
 
 			<audio
 				src={URL_PREFIX + currentMusic?.url}
@@ -100,47 +100,55 @@ const AudioPlayer = () => {
 				volume='50%'
 			/>
 
-			<div className='flex flex-col items-center m-auto justify-items-center'>
+			<div className='flex gap-1 md:gap-4'>
 
-				<div className='w-full flex items-stretch'>
+				<div className='flex w-full sm:w-2/5 justify-between sm:justify-around'>
+
 					<img
 						src={URL_PREFIX + currentMusic?.portada}
 						alt={currentMusic?.name}
-						className='w-4/5 aspect-square object-cover'
+						className='h-[50px] aspect-square object-cover'
 					/>
-					<div className='flex-1 grid grid-rows-4'>
+
+					<h3 className=' max-w-150px overflow-hidden flex text-nowrap justify-center items-center'>{currentMusic?.name} - {currentMusic?.artist} </h3>
+
+					<div className='flex items-center'>
 						<button
-							className='flex items-center justify-center cursor-pointer active:bg-gray-200'
+							className='w-10 aspect-square flex items-center justify-center cursor-pointer active:bg-gray-200'
 							onClick={skipBack}
 						>
-							<img src='/svg/next.svg' className='w-3 h-3 md:w-5 md:h-5 rotate-180' />
+							<img src='/svg/next.svg' className='w-5 h-5' />
 						</button>
+
 						<button
-							className={`flex items-center justify-center cursor-pointer ${isPlaying ? 'bg-gray-200' : ''}`}
+							className={`w-10 aspect-square flex items-center justify-center cursor-pointer ${isPlaying ? 'bg-gray-200' : ''}`}
 							onClick={playPause}
 						>
-							<img src={isPlaying ? '/svg/pause.svg' : '/svg/play.svg'} className='w-3 h-3 md:w-5 md:h-5' />
+							<img src={'/svg/pause.svg'} className='w-5 h-5' />
 						</button>
+
 						<button
-							className='flex items-center justify-center cursor-pointer active:bg-gray-200'
+							className='w-10 aspect-square flex items-center justify-center cursor-pointer active:bg-gray-200'
 							onClick={skipNext}
 						>
-							<img src='/svg/next.svg' className='w-3 h-3 md:w-5 md:h-5' />
+							<img src='/svg/next.svg' className='w-5 h-5 rotate-180' />
 						</button>
+
 						<button
-							className={`flex items-center justify-center cursor-pointer ${autoplay ? 'bg-gray-200' : ''}`}
+							className={`w-10 aspect-square flex items-center justify-center cursor-pointer ${autoplay ? 'bg-gray-200' : ''}`}
 							onClick={toggleAutoplay}
 						>
-							<img src='/svg/loop.svg' className='w-3 h-3 md:w-5 md:h-5' />
+							<img src='/svg/loop.svg' className='w-5 h-5' />
 						</button>
+
 					</div>
 				</div>
 
-				<div className='flex content-center items-center w-full gap-1 px-1'>
-					<div>{formatTime(currentTime)}</div>
+				<div className='hidden sm:flex sm:flex-3/5 justify-center items-center'>
+					<div className='' >{formatTime(currentTime)}</div>
 
 					<div
-						className='bg-gray-300 h-2 w-full cursor-pointer'
+						className='bg-gray-300 h-3 w-full cursor-pointer'
 						onClick={checkTime}
 						ref={clickRef}
 					>
@@ -152,9 +160,6 @@ const AudioPlayer = () => {
 
 					<div>{formatTime(duration)}</div>
 				</div>
-
-				<h3>{currentMusic?.name} - {currentMusic?.artist} </h3>
-
 			</div>
 		</div>
 	)
