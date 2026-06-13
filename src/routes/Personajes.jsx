@@ -65,8 +65,6 @@ const personajes = [
 function Personajes() {
 	const [currentIdx, setCurrentIdx] = useState(null)
 
-	const isMenu = currentIdx === null
-
 	const handleSelect = (p) => {
 		const idx = personajes.findIndex(x => x.id === p.id)
 		if (idx !== -1) setCurrentIdx(idx)
@@ -74,11 +72,11 @@ function Personajes() {
 
 	return (
 		<div className='w-full p-2 border'>
-			{isMenu && (
+			{currentIdx === null ? (
 				<MenuPersonajes personajes={personajes} onSelect={handleSelect} />
-			)}
-			{!isMenu && (
+			) : (
 				<ContentPersonaje
+					key={personajes[currentIdx].id}
 					personaje={personajes[currentIdx]}
 					onPrev={() => setCurrentIdx(i => i - 1)}
 					onNext={() => setCurrentIdx(i => i + 1)}

@@ -1,5 +1,4 @@
-// mockGaleria.js
-export const mockGaleria = [
+export const imagenes = [
 	{ id: 1,  url: 'https://picsum.photos/id/10/800/600',  title: 'Bosque tranquilo' },
 	{ id: 2,  url: 'https://picsum.photos/id/11/800/600',  title: 'Montañas nevadas' },
 	{ id: 3,  url: 'https://picsum.photos/id/12/800/600',  title: 'Lago cristalino' },

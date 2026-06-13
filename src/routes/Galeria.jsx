@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
-import useFetch from '../hooks/useFetch'
+import { useEffect, useMemo, useState } from 'react'
 import ImageModal from '../components/ImageModal'
+import { imagenes } from '../data/imagenes'
 
 const breakpoints = [
 	{ minWidth: 1536, cols: 3 },
@@ -10,47 +10,68 @@ const breakpoints = [
 ]
 
 function getColCount() {
-	const w = window.innerWidth
-	return breakpoints.find(b => w >= b.minWidth).cols
+	if (typeof window === 'undefined') return 1
+	return breakpoints.find(b => window.innerWidth >= b.minWidth).cols
 }
 
-const URL_PREFIX = 'https://lucesdefalsocontacto.com/'
+const SCROLL_THRESHOLD_PX = 400
+const SCROLL_THROTTLE_MS = 200
+const INITIAL_VISIBLE = 15
+const PAGE_INCREMENT = 6
 
 const Galeria = () => {
-	const { data: imgData } = useFetch('/api/imagenes')
-	const [visible, setVisible] = useState(15)
-	const [colCount, setColCount] = useState(getColCount)
+	const imgData = imagenes
+	const [visible, setVisible] = useState(INITIAL_VISIBLE)
+	const [colCount, setColCount] = useState(1)
 	const [selectedIdx, setSelectedIdx] = useState(null)
 
 	useEffect(() => {
+		setColCount(getColCount())
 		const onResize = () => setColCount(getColCount())
 		window.addEventListener('resize', onResize)
 		return () => window.removeEventListener('resize', onResize)
 	}, [])
 
-	const handleScroll = () => {
-		const scrollY = window.scrollY
-		const height = document.documentElement.scrollHeight - window.innerHeight
-		if (height - scrollY < 400) {
-			setVisible(prev => prev + 6)
-		}
-	}
-
 	useEffect(() => {
-		window.addEventListener('scroll', handleScroll)
-		return () => window.removeEventListener('scroll', handleScroll)
+		let lastRun = 0
+		let scheduled = false
+
+		const checkScroll = () => {
+			lastRun = Date.now()
+			scheduled = false
+			const scrollY = window.scrollY
+			const height = document.documentElement.scrollHeight - window.innerHeight
+			if (height - scrollY < SCROLL_THRESHOLD_PX) {
+				setVisible(prev => prev + PAGE_INCREMENT)
+			}
+		}
+
+		const onScroll = () => {
+			const now = Date.now()
+			if (now - lastRun >= SCROLL_THROTTLE_MS) {
+				checkScroll()
+			} else if (!scheduled) {
+				scheduled = true
+				setTimeout(checkScroll, SCROLL_THROTTLE_MS - (now - lastRun))
+			}
+		}
+
+		window.addEventListener('scroll', onScroll, { passive: true })
+		return () => window.removeEventListener('scroll', onScroll)
 	}, [])
 
-	const columns = Array.from({ length: colCount }, () => [])
-	imgData.slice(0, visible).forEach((img, i) => {
-		columns[i % colCount].push({ img, idx: i })
-	})
+	const columns = useMemo(() => {
+		const cols = Array.from({ length: colCount }, () => [])
+		imgData.slice(0, visible).forEach((img, i) => {
+			cols[i % colCount].push({ img, idx: i })
+		})
+		return cols
+	}, [colCount, visible, imgData])
 
-	const modalImages = imgData.map(img => ({
-		id: img.id,
-		src: URL_PREFIX + img.url,
-		alt: img.title,
-	}))
+	const modalImages = useMemo(
+		() => imgData.map(img => ({ id: img.id, src: img.url, alt: img.title })),
+		[imgData]
+	)
 
 	return (
 		<>
@@ -59,14 +80,22 @@ const Galeria = () => {
 					{columns.map((col, ci) => (
 						<div key={ci} className='flex-1 min-w-0 flex flex-col gap-1 md:gap-2'>
 							{col.map(({ img, idx }) => (
-								<img
+								<button
 									key={img.id}
-									src={URL_PREFIX + img.url}
-									alt={img.title}
-									loading='lazy'
+									type='button'
 									onClick={() => setSelectedIdx(idx)}
-									className='w-full h-auto block border-1 cursor-pointer transition hover:brightness-110 hover:outline-2 hover:outline-black'
-								/>
+									aria-label={`Ver imagen: ${img.title}`}
+									className='block w-full p-0 border-1 bg-white cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-500 touch-manipulation'
+								>
+									<img
+										src={img.url}
+										alt={img.title}
+										loading='lazy'
+										width='800'
+										height='600'
+										className='w-full h-auto block transition-transform duration-200 ease-out hover:scale-[1.02] motion-reduce:transition-none'
+									/>
+								</button>
 							))}
 						</div>
 					))}

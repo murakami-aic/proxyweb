@@ -1,11 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import useFetch from '../hooks/useFetch'
-
-const URL_PREFIX = 'https://lucesdefalsocontacto.com/'
+import { musica } from '../data/musica'
 
 const AudioPlayer = () => {
-	const { data: musicData } = useFetch('/api/musica')
-	const music = musicData ?? []
+	const music = musica
 
 	const [isPlaying, setIsPlaying] = useState(false)
 	const [currentIndex, setCurrentIndex] = useState(0)
@@ -88,16 +85,29 @@ const AudioPlayer = () => {
 		setIsPlaying(true)
 	}
 
+	const onProgressKeyDown = (e) => {
+		const audio = audioElem.current
+		if (!audio || !audio.duration) return
+		if (e.key === 'ArrowLeft') {
+			audio.currentTime = Math.max(0, audio.currentTime - 5)
+			e.preventDefault()
+		}
+		if (e.key === 'ArrowRight') {
+			audio.currentTime = Math.min(audio.duration, audio.currentTime + 5)
+			e.preventDefault()
+		}
+	}
+
 	return (
-		<div className='fixed bottom-0 left-0 w-full border px-1 md:px-10 py-1 bg-white'>
+		<div className='fixed bottom-0 left-0 w-full border px-1 md:px-10 py-1 bg-white z-40'>
 
 			<audio
-				src={URL_PREFIX + currentMusic?.url}
+				src={currentMusic?.url}
 				ref={audioElem}
 				onTimeUpdate={onPlaying}
 				onLoadedMetadata={onLoadedMetadata}
 				onEnded={handleSongEnd}
-				volume='50%'
+				preload='none'
 			/>
 
 			<div className='flex gap-1 md:gap-4'>
@@ -105,60 +115,88 @@ const AudioPlayer = () => {
 				<div className='flex w-full sm:w-2/5 justify-between sm:justify-around'>
 
 					<img
-						src={URL_PREFIX + currentMusic?.portada}
-						alt={currentMusic?.name}
+						src={currentMusic?.portada}
+						alt=''
+						aria-hidden='true'
+						width='50'
+						height='50'
 						className='h-[50px] aspect-square object-cover'
 					/>
 
-					<h3 className=' max-w-150px overflow-hidden flex text-nowrap justify-center items-center'>{currentMusic?.name} - {currentMusic?.artist} </h3>
+					<h3 className='max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap flex justify-center items-center'>
+						{currentMusic?.name} - {currentMusic?.artist}
+					</h3>
 
 					<div className='flex items-center'>
 						<button
-							className='w-10 aspect-square flex items-center justify-center cursor-pointer active:bg-gray-200'
+							type='button'
+							aria-label='Canción anterior'
+							className='w-10 aspect-square flex items-center justify-center cursor-pointer active:bg-gray-200 focus-visible:outline-2 focus-visible:outline-primary-500 touch-manipulation'
 							onClick={skipBack}
 						>
-							<img src='/svg/next.svg' className='w-5 h-5' />
+							<img src='/svg/next.svg' alt='' aria-hidden='true' className='w-5 h-5' />
 						</button>
 
 						<button
-							className={`w-10 aspect-square flex items-center justify-center cursor-pointer ${isPlaying ? 'bg-gray-200' : ''}`}
+							type='button'
+							aria-label={isPlaying ? 'Pausar' : 'Reproducir'}
+							aria-pressed={isPlaying}
+							className={`w-10 aspect-square flex items-center justify-center cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-500 touch-manipulation ${isPlaying ? 'bg-gray-200' : ''}`}
 							onClick={playPause}
 						>
-							<img src={'/svg/pause.svg'} className='w-5 h-5' />
+							<img
+								src={isPlaying ? '/svg/pause.svg' : '/svg/play.svg'}
+								alt=''
+								aria-hidden='true'
+								className='w-5 h-5'
+							/>
 						</button>
 
 						<button
-							className='w-10 aspect-square flex items-center justify-center cursor-pointer active:bg-gray-200'
+							type='button'
+							aria-label='Canción siguiente'
+							className='w-10 aspect-square flex items-center justify-center cursor-pointer active:bg-gray-200 focus-visible:outline-2 focus-visible:outline-primary-500 touch-manipulation'
 							onClick={skipNext}
 						>
-							<img src='/svg/next.svg' className='w-5 h-5 rotate-180' />
+							<img src='/svg/next.svg' alt='' aria-hidden='true' className='w-5 h-5 rotate-180' />
 						</button>
 
 						<button
-							className={`w-10 aspect-square flex items-center justify-center cursor-pointer ${autoplay ? 'bg-gray-200' : ''}`}
+							type='button'
+							aria-label='Reproducción automática'
+							aria-pressed={autoplay}
+							className={`w-10 aspect-square flex items-center justify-center cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-500 touch-manipulation ${autoplay ? 'bg-gray-200' : ''}`}
 							onClick={toggleAutoplay}
 						>
-							<img src='/svg/loop.svg' className='w-5 h-5' />
+							<img src='/svg/loop.svg' alt='' aria-hidden='true' className='w-5 h-5' />
 						</button>
 
 					</div>
 				</div>
 
-				<div className='hidden sm:flex sm:flex-3/5 justify-center items-center'>
-					<div className='' >{formatTime(currentTime)}</div>
+				<div className='hidden sm:flex sm:flex-3/5 justify-center items-center gap-2'>
+					<div className='tabular-nums'>{formatTime(currentTime)}</div>
 
 					<div
-						className='bg-gray-300 h-3 w-full cursor-pointer'
+						className='bg-gray-300 h-3 w-full cursor-pointer touch-manipulation'
 						onClick={checkTime}
 						ref={clickRef}
+						role='slider'
+						tabIndex={0}
+						aria-label='Posición de la canción'
+						aria-valuemin={0}
+						aria-valuemax={Math.round(duration) || 0}
+						aria-valuenow={Math.round(currentTime)}
+						aria-valuetext={`${formatTime(currentTime)} de ${formatTime(duration)}`}
+						onKeyDown={onProgressKeyDown}
 					>
 						<div
-							className='bg-gray-600 h-full transition-[width] duration-300 ease-linear'
+							className='bg-primary-600 h-full transition-[width] duration-300 ease-linear'
 							style={{ width: `${progress * 100}%` }}
 						></div>
 					</div>
 
-					<div>{formatTime(duration)}</div>
+					<div className='tabular-nums'>{formatTime(duration)}</div>
 				</div>
 			</div>
 		</div>

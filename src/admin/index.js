@@ -1,7 +1,0 @@
-export { default as Login } from './Login'
-export { default as Dashboard } from './Dashboard'
-export { default as SubirImagenes } from './SubirImagenes'
-export { default as SubirMusica } from './SubirMusica'
-export { default as BorrarImagenes } from './BorrarImagenes'
-export { default as BorrarMusica } from './BorrarMusica'
-export { default as BorrarComics } from './BorrarComics'
