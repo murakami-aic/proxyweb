@@ -46,16 +46,32 @@ const Attachments = ({ attachments }) => {
 /**
  * Tarjeta de publicación. Con `to` enlaza al hilo completo,
  * sin `to` muestra el contenido expandido.
+ * Cada usuario puede borrar sus propios posts (post.owner); el admin, todos.
  */
-function ForoPost({ post, to, linkText, onDelete }) {
+function ForoPost({ post, to, linkText, onDeleted }) {
 	const [showDelete, setShowDelete] = useState(false)
 	const [token, setToken] = useState('')
 	const [error, setError] = useState(null)
+	const [deletingOwn, setDeletingOwn] = useState(false)
 
-	const handleDelete = async () => {
+	const handleDeleteOwn = async () => {
+		if (!window.confirm('¿Borrar tu publicación? Se borrarán también sus respuestas y archivos.')) return
+		setDeletingOwn(true)
+		setError(null)
+		try {
+			await deletePost(post.id)
+			onDeleted?.(post.id)
+		} catch {
+			setError('No se pudo borrar la publicación.')
+		} finally {
+			setDeletingOwn(false)
+		}
+	}
+
+	const handleDeleteAdmin = async () => {
 		try {
 			await deletePost(post.id, token)
-			onDelete?.(post.id)
+			onDeleted?.(post.id)
 		} catch {
 			setError('No se pudo borrar. Revisa el token.')
 		}
@@ -104,10 +120,21 @@ function ForoPost({ post, to, linkText, onDelete }) {
 				</Link>
 			)}
 
-			{onDelete && (
-				<div className='text-sm border-t pt-2 mt-1'>
+			{onDeleted && (
+				<div className='text-sm border-t pt-2 mt-1 flex flex-wrap gap-3 items-center'>
+					{post.owner && (
+						<button
+							type='button'
+							onClick={handleDeleteOwn}
+							disabled={deletingOwn}
+							className='text-xs border px-2 py-0.5 cursor-pointer active:bg-gray-200 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-primary-500'
+						>
+							{deletingOwn ? 'Borrando...' : 'Borrar mi post'}
+						</button>
+					)}
+
 					{showDelete ? (
-						<div className='flex flex-wrap gap-2 items-center'>
+						<span className='flex flex-wrap gap-2 items-center'>
 							<label className='text-xs' htmlFor={`token-${post.id}`}>Token admin:</label>
 							<input
 								id={`token-${post.id}`}
@@ -118,7 +145,7 @@ function ForoPost({ post, to, linkText, onDelete }) {
 							/>
 							<button
 								type='button'
-								onClick={handleDelete}
+								onClick={handleDeleteAdmin}
 								className='border px-2 py-0.5 cursor-pointer active:bg-gray-200 focus-visible:outline-2 focus-visible:outline-primary-500'
 							>
 								Confirmar borrado
@@ -130,8 +157,7 @@ function ForoPost({ post, to, linkText, onDelete }) {
 							>
 								Cancelar
 							</button>
-							{error && <span role='alert' className='text-red-700 text-xs'>{error}</span>}
-						</div>
+						</span>
 					) : (
 						<button
 							type='button'
@@ -141,6 +167,8 @@ function ForoPost({ post, to, linkText, onDelete }) {
 							Borrar (admin)
 						</button>
 					)}
+
+					{error && <span role='alert' className='text-red-700 text-xs'>{error}</span>}
 				</div>
 			)}
 		</article>

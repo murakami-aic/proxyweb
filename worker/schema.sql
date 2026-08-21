@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS posts (
 	avatar_url TEXT,
 	content TEXT NOT NULL,
 	created_at INTEGER NOT NULL,
+	author_key_hash TEXT,
 	FOREIGN KEY (parent_id) REFERENCES posts(id) ON DELETE CASCADE
 );
 

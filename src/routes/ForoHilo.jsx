@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import ForoForm from '../components/ForoForm'
 import ForoPost from '../components/ForoPost'
 import { fetchJSON } from '../lib/api'
 
 function ForoHilo() {
 	const { id } = useParams()
+	const navigate = useNavigate()
 	const [thread, setThread] = useState(null)
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(null)
@@ -26,13 +27,13 @@ function ForoHilo() {
 
 	const handleCreated = () => load()
 
-	const handleDelete = () => {
-		// Si se borra la publicación raíz, vuelve al listado
-		window.location.href = '/foro'
-	}
-
-	const handleDeleteReply = (replyId) => {
-		setThread(prev => prev ? { ...prev, replies: prev.replies.filter(r => r.id !== replyId) } : prev)
+	// Si se borra la publicación raíz (por su autor o por el admin), vuelve al foro
+	const handleDeleted = (deletedId) => {
+		if (deletedId === thread?.id) {
+			navigate('/foro', { replace: true })
+			return
+		}
+		setThread(prev => prev ? { ...prev, replies: prev.replies.filter(r => r.id !== deletedId) } : prev)
 	}
 
 	if (loading) {
@@ -60,7 +61,7 @@ function ForoHilo() {
 			</Link>
 
 			<section aria-label='Publicación original'>
-				<ForoPost post={thread} onDelete={handleDelete} />
+				<ForoPost post={thread} onDeleted={handleDeleted} />
 			</section>
 
 			<section aria-labelledby='replies-heading' className='flex flex-col gap-3'>
@@ -73,7 +74,7 @@ function ForoHilo() {
 				)}
 
 				{thread.replies.map(reply => (
-					<ForoPost key={reply.id} post={reply} onDelete={handleDeleteReply} />
+					<ForoPost key={reply.id} post={reply} onDeleted={handleDeleted} />
 				))}
 			</section>
 

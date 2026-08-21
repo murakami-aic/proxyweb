@@ -2,19 +2,24 @@
  * API del foro para Cloudflare Workers (plan gratuito).
  *
  * Endpoints:
- *   GET    /api/threads          -> lista de publicaciones (con nº de respuestas)
- *   GET    /api/threads/:id      -> publicación + sus respuestas
+ *   GET    /api/config           -> límites y tipos aceptados (fuente única de verdad)
+ *   GET    /api/threads          -> lista de publicaciones (con nº de respuestas y "owner")
+ *   GET    /api/threads/:id      -> publicación + sus respuestas (con "owner")
  *   POST   /api/threads          -> crear publicación o respuesta (multipart/form-data)
- *   DELETE /api/threads/:id      -> borrar publicación (requiere cabecera X-Admin-Token)
+ *   DELETE /api/threads/:id      -> borrar publicación (X-Admin-Token o X-Author-Key)
  *   GET    /api/files/:key       -> servir archivo de R2 (imagen/audio)
  *
+ * Cabeceras:
+ *   X-Admin-Token  -> token secreto del administrador (borra cualquier post)
+ *   X-Author-Key   -> clave de autor generada por el navegador (borrar posts propios)
+ *
  * Campos del formulario POST:
- *   name      (texto, requerido)      nombre del autor
- *   content   (texto, requerido)      mensaje
- *   parentId  (texto, opcional)       id de la publicación padre (respuesta)
- *   avatar    (archivo, opcional)     foto de perfil (imagen <= 2 MB)
- *   image     (archivo, opcional)     imagen adjunta (<= 5 MB)
- *   audio     (archivo, opcional)     audio adjunto (<= 20 MB)
+ *   name      (texto, requerido)        nombre del autor
+ *   content   (texto, requerido)        mensaje
+ *   parentId  (texto, opcional)         id de la publicación padre (respuesta)
+ *   avatar    (archivo, opcional)       foto de perfil (imagen <= 1 MB)
+ *   images    (archivos, opcional, repetible) imágenes (<= 5 MB cada una, máx N)
+ *   audio     (archivo, opcional)       audio (<= 8 MB)
  */
 
 const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8' }
@@ -24,11 +29,26 @@ const AUDIO_TYPES = ['audio/mpeg', 'audio/mp3', 'audio/ogg', 'audio/wav', 'audio
 
 const uuid = () => crypto.randomUUID()
 
+async function sha256Hex(text) {
+	const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
+	return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
+function getLimits(env) {
+	return {
+		maxAvatarSize: Number(env.MAX_AVATAR_SIZE) || 1048576,
+		maxImageSize: Number(env.MAX_IMAGE_SIZE) || 5242880,
+		maxAudioSize: Number(env.MAX_AUDIO_SIZE) || 8388608,
+		maxImages: Number(env.MAX_IMAGES) || 5,
+		maxTotalSize: Number(env.MAX_TOTAL_SIZE) || 62914560,
+	}
+}
+
 function corsHeaders(env) {
 	return {
 		'access-control-allow-origin': env.ALLOWED_ORIGIN || '*',
 		'access-control-allow-methods': 'GET, POST, DELETE, OPTIONS',
-		'access-control-allow-headers': 'content-type, x-admin-token',
+		'access-control-allow-headers': 'content-type, x-admin-token, x-author-key',
 		'access-control-max-age': '86400',
 		vary: 'origin',
 	}
@@ -45,12 +65,19 @@ async function isAuthorized(request, env) {
 	return typeof env.ADMIN_TOKEN === 'string' && token === env.ADMIN_TOKEN
 }
 
+/** Devuelve el hash SHA-256 de la clave de autor de la petición (o null). */
+async function authorKeyHash(request) {
+	const key = request.headers.get('x-author-key')
+	if (!key || key.length > 200) return null
+	return sha256Hex(key)
+}
+
 /** Sube un archivo a R2 si supera las validaciones. Devuelve la url o null. */
-async function uploadFile(env, file, kind) {
+async function uploadFile(env, file, kind, limits) {
 	const max =
-		kind === 'avatar' ? 2 * 1024 * 1024 :
-			kind === 'image' ? Number(env.MAX_IMAGE_SIZE) || 5 * 1024 * 1024 :
-				Number(env.MAX_AUDIO_SIZE) || 20 * 1024 * 1024
+		kind === 'avatar' ? limits.maxAvatarSize :
+			kind === 'image' ? limits.maxImageSize :
+				limits.maxAudioSize
 
 	if (file.size === 0) return null
 	if (file.size > max) throw new Error(`El archivo "${file.name}" supera el máximo de ${Math.round(max / 1024 / 1024)} MB`)
@@ -59,7 +86,7 @@ async function uploadFile(env, file, kind) {
 	if (!validTypes.includes(file.type)) throw new Error(`Tipo de archivo no permitido: ${file.type || 'desconocido'}`)
 
 	const ext = (file.name.split('.').pop() || '').toLowerCase().replace(/[^a-z0-9]/g, '')
-	const key = `${kind}s/${uuid()}${ext ? '.' + ext : ''}`
+	const key = `${kind === 'avatar' ? 'avatars' : kind + 's'}/${uuid()}${ext ? '.' + ext : ''}`
 	await env.FILES.put(key, file.body ?? file, {
 		httpMetadata: { contentType: file.type, cacheControl: 'public, max-age=31536000, immutable' },
 	})
@@ -80,28 +107,35 @@ async function attachmentsFor(env, postIds) {
 	return urls
 }
 
-async function listThreads(env) {
+async function listThreads(env, request) {
+	const keyHash = await authorKeyHash(request)
 	const { results: posts } = await env.DB.prepare(`
 		SELECT p.id, p.parent_id, p.name, p.avatar_url, p.content, p.created_at,
-		       (SELECT COUNT(*) FROM posts r WHERE r.parent_id = p.id) AS reply_count
+		       (SELECT COUNT(*) FROM posts r WHERE r.parent_id = p.id) AS reply_count,
+		       (p.author_key_hash IS NOT NULL AND p.author_key_hash = ?) AS owner
 		FROM posts p
 		WHERE p.parent_id IS NULL
 		ORDER BY p.created_at DESC
 		LIMIT 100
-	`).all()
+	`).bind(keyHash).all()
 	const urls = await attachmentsFor(env, posts.map(p => p.id))
 	return posts.map(p => ({ ...p, attachments: urls[p.id] ?? [] }))
 }
 
-async function getThread(env, id) {
-	const post = await env.DB.prepare(
-		'SELECT id, parent_id, name, avatar_url, content, created_at FROM posts WHERE id = ?'
-	).first(id)
+async function getThread(env, request, id) {
+	const keyHash = await authorKeyHash(request)
+	const post = await env.DB.prepare(`
+		SELECT id, parent_id, name, avatar_url, content, created_at,
+		       (author_key_hash IS NOT NULL AND author_key_hash = ?) AS owner
+		FROM posts WHERE id = ?
+	`).bind(keyHash, id).first()
 	if (!post) return null
 
-	const { results: replies } = await env.DB.prepare(
-		'SELECT id, name, avatar_url, content, created_at FROM posts WHERE parent_id = ? ORDER BY created_at ASC LIMIT 500'
-	).bind(id).all()
+	const { results: replies } = await env.DB.prepare(`
+		SELECT id, name, avatar_url, content, created_at,
+		       (author_key_hash IS NOT NULL AND author_key_hash = ?) AS owner
+		FROM posts WHERE parent_id = ? ORDER BY created_at ASC LIMIT 500
+	`).bind(keyHash, id).all()
 
 	const urls = await attachmentsFor(env, [id, ...replies.map(r => r.id)])
 	return {
@@ -119,42 +153,56 @@ async function createPost(env, request) {
 		return badRequest(env, 'Se esperaba multipart/form-data')
 	}
 
+	const limits = getLimits(env)
 	const name = (form.get('name') ?? '').toString().trim().slice(0, 40)
 	const content = (form.get('content') ?? '').toString().trim().slice(0, 5000)
 	const parentId = (form.get('parentId') ?? '').toString().trim() || null
 
 	if (!name) return badRequest(env, 'El nombre es obligatorio')
 	if (!content) return badRequest(env, 'El mensaje es obligatorio')
-	if (parentId && !(await env.DB.prepare('SELECT id FROM posts WHERE id = ?').first(parentId))) {
+	if (parentId && !(await env.DB.prepare('SELECT id FROM posts WHERE id = ?').bind(parentId).first())) {
 		return badRequest(env, 'La publicación a responder no existe')
 	}
 
 	try {
-		const attachments = []
-
 		const avatar = form.get('avatar')
-		const avatarUrl = avatar instanceof File ? await uploadFile(env, avatar, 'avatar') : null
+		const avatarFile = avatar instanceof File && avatar.size > 0 ? avatar : null
 
-		const image = form.get('image')
-		if (image instanceof File) {
-			const url = await uploadFile(env, image, 'image')
-			if (url) attachments.push({ type: 'image', url })
-		}
+		const imageFiles = form
+			.getAll('images')
+			.filter(f => f instanceof File && f.size > 0)
+			.slice(0, limits.maxImages)
 
 		const audio = form.get('audio')
-		if (audio instanceof File) {
-			const url = await uploadFile(env, audio, 'audio')
+		const audioFile = audio instanceof File && audio.size > 0 ? audio : null
+
+		const totalSize =
+			(avatarFile?.size ?? 0) +
+			imageFiles.reduce((sum, f) => sum + f.size, 0) +
+			(audioFile?.size ?? 0)
+		if (totalSize > limits.maxTotalSize) {
+			return badRequest(env, `La publicación supera el máximo total de ${Math.round(limits.maxTotalSize / 1024 / 1024)} MB`)
+		}
+
+		const attachments = []
+		const avatarUrl = avatarFile ? await uploadFile(env, avatarFile, 'avatar', limits) : null
+		for (const image of imageFiles) {
+			const url = await uploadFile(env, image, 'image', limits)
+			if (url) attachments.push({ type: 'image', url })
+		}
+		if (audioFile) {
+			const url = await uploadFile(env, audioFile, 'audio', limits)
 			if (url) attachments.push({ type: 'audio', url })
 		}
 
+		const keyHash = await authorKeyHash(request)
 		const id = uuid()
 		const createdAt = Date.now()
 
-		// Inserta post y adjuntos en una transacción
 		const stmts = [
 			env.DB.prepare(
-				'INSERT INTO posts (id, parent_id, name, avatar_url, content, created_at) VALUES (?, ?, ?, ?, ?, ?)'
-			).bind(id, parentId, name, avatarUrl, content, createdAt),
+				'INSERT INTO posts (id, parent_id, name, avatar_url, content, created_at, author_key_hash) VALUES (?, ?, ?, ?, ?, ?, ?)'
+			).bind(id, parentId, name, avatarUrl, content, createdAt, keyHash),
 			...attachments.map(a =>
 				env.DB.prepare(
 					'INSERT INTO attachments (id, post_id, type, url) VALUES (?, ?, ?, ?)'
@@ -169,20 +217,32 @@ async function createPost(env, request) {
 	}
 }
 
-async function deletePost(env, id) {
+async function deletePost(env, request, id) {
+	// Autorización: admin (cualquier post) o autor (solo posts propios)
+	if (!(await isAuthorized(request, env))) {
+		const key = request.headers.get('x-author-key')
+		const row = key
+			? await env.DB.prepare('SELECT author_key_hash FROM posts WHERE id = ?').bind(id).first()
+			: null
+		const owns = row?.author_key_hash && key && row.author_key_hash === (await sha256Hex(key))
+		if (!owns) return json(env, { error: 'No autorizado' }, 401)
+	}
+
 	// Los adjuntos viven en R2; se listan antes del CASCADE
-	const { results } = await env.DB.prepare('SELECT url FROM attachments WHERE post_id IN (?)').bind(id).all()
+	const files = []
+	const { results: rootAttachments } = await env.DB.prepare('SELECT url FROM attachments WHERE post_id = ?').bind(id).all()
+	files.push(...rootAttachments)
 	const { results: replies } = await env.DB.prepare('SELECT id FROM posts WHERE parent_id = ?').bind(id).all()
 	for (const r of replies) {
 		const { results: ra } = await env.DB.prepare('SELECT url FROM attachments WHERE post_id = ?').bind(r.id).all()
-		results.push(...ra)
+		files.push(...ra)
 	}
 
 	await env.DB.prepare('DELETE FROM posts WHERE id = ? OR parent_id = ?').bind(id, id).run()
 
 	// Borrado best-effort de R2 (si falla, no bloquea la respuesta)
 	await Promise.allSettled(
-		results
+		files
 			.map(a => a.url.replace('/api/files/', ''))
 			.filter(Boolean)
 			.map(key => env.FILES.delete(key))
@@ -208,30 +268,32 @@ export default {
 		}
 
 		const url = new URL(request.url)
-		const parts = url.pathname.split('/').filter(Boolean) // ['api', 'threads', ...]
+		const parts = url.pathname.split('/').filter(Boolean) // ['api', ...]
 
 		try {
 			if (parts[0] !== 'api') return notFound(env)
 
-			if (parts[1] === 'files' && parts.length === 3 && request.method === 'GET') {
-				return serveFile(env, parts[2])
+			if (parts[1] === 'config' && parts.length === 2 && request.method === 'GET') {
+				const limits = getLimits(env)
+				return json(env, { ...limits, acceptedImageTypes: IMAGE_TYPES, acceptedAudioTypes: AUDIO_TYPES })
+			}
+
+			if (parts[1] === 'files' && parts.length >= 3 && request.method === 'GET') {
+				return serveFile(env, parts.slice(2).join('/'))
 			}
 
 			if (parts[1] === 'threads') {
 				if (parts.length === 2) {
-					if (request.method === 'GET') return json(env, { threads: await listThreads(env) })
+					if (request.method === 'GET') return json(env, { threads: await listThreads(env, request) })
 					if (request.method === 'POST') return createPost(env, request)
 				}
 				if (parts.length === 3) {
 					if (request.method === 'GET') {
-						const thread = await getThread(env, parts[2])
+						const thread = await getThread(env, request, parts[2])
 						return thread ? json(env, thread) : notFound(env)
 					}
 					if (request.method === 'DELETE') {
-						if (!(await isAuthorized(request, env))) {
-							return json(env, { error: 'No autorizado' }, 401)
-						}
-						return deletePost(env, parts[2])
+						return deletePost(env, request, parts[2])
 					}
 				}
 			}

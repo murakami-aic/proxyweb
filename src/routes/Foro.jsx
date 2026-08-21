@@ -29,7 +29,7 @@ function Foro() {
 		if (id) document.getElementById(`post-${id}`)?.scrollIntoView({ block: 'center' })
 	}
 
-	const handleDelete = (id) => {
+	const handleDeleted = (id) => {
 		setThreads(prev => prev.filter(t => t.id !== id))
 	}
 
@@ -67,7 +67,7 @@ function Foro() {
 							post={thread}
 							to={`/foro/${thread.id}`}
 							linkText='Ver hilo y responder →'
-							onDelete={handleDelete}
+							onDeleted={handleDeleted}
 						/>
 					</div>
 				))}

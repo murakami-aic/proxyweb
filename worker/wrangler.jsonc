@@ -26,8 +26,11 @@
 	"vars": {
 		// Orígenes permitidos (CORS). En producción pon tu dominio, ej: "https://tudominio.com"
 		"ALLOWED_ORIGIN": "*",
-		// Tamaños máximos en bytes (5 MB imagen, 20 MB audio)
+		// Límites de tamaño en bytes. El frontend los consulta en GET /api/config.
+		"MAX_AVATAR_SIZE": "1048576",
 		"MAX_IMAGE_SIZE": "5242880",
-		"MAX_AUDIO_SIZE": "20971520"
+		"MAX_AUDIO_SIZE": "8388608",
+		"MAX_IMAGES": "5",
+		"MAX_TOTAL_SIZE": "62914560"
 	}
 }

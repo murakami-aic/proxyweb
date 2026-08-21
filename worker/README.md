@@ -75,13 +75,22 @@ y ejecuta `npm run dev`.
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET | `/api/threads` | Lista de publicaciones con nº de respuestas |
-| GET | `/api/threads/:id` | Publicación + respuestas |
-| POST | `/api/threads` | Crear post/respuesta (multipart: `name`, `content`, `parentId?`, `avatar?`, `image?`, `audio?`) |
-| DELETE | `/api/threads/:id` | Borrar post y sus respuestas (cabecera `X-Admin-Token`) |
+| GET | `/api/config` | Límites de tamaño y tipos aceptados |
+| GET | `/api/threads` | Lista de publicaciones con nº de respuestas y `owner` |
+| GET | `/api/threads/:id` | Publicación + respuestas (con `owner`) |
+| POST | `/api/threads` | Crear post/respuesta (multipart: `name`, `content`, `parentId?`, `avatar?`, `images?` (repetible), `audio?`). Cabeceras opcionales: `X-Admin-Token`, `X-Author-Key` |
+| DELETE | `/api/threads/:id` | Borrar post y sus respuestas (cabecera `X-Admin-Token` para borrar cualquiera, o `X-Author-Key` para borrar solo posts propios) |
 | GET | `/api/files/:key` | Servir archivo de R2 |
 
 ## Límites aplicados
 
-- Foto de perfil: 2 MB · Imagen: 5 MB · Audio: 20 MB
-- Cuerpo máximo de petición en plan gratis: 100 MB (holgado)
+- Foto de perfil: 1 MB · Imagen: 5 MB (máx 5 por post) · Audio: 8 MB · Total por post: 60 MB
+- Las imágenes se comprimen **en el navegador** antes de subir (canvas, máx 1920 px).
+- Los límites viven en las vars de `wrangler.jsonc` y el frontend los consulta en `GET /api/config`.
+
+## Borrado de posts
+
+- **Admin**: token secreto (`ADMIN_TOKEN`) vía `X-Admin-Token`. Borra cualquier post.
+- **Autor**: cada navegador genera una clave aleatoria (`foro-author-key` en localStorage)
+  que se envía como `X-Author-Key`. El Worker guarda solo su hash SHA-256
+  (`posts.author_key_hash`) y permite borrar posts creados con esa clave.
