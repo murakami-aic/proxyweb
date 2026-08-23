@@ -1,11 +1,42 @@
 {
-	// Worker con Static Assets: sirve el build de Vite (dist) y aplica
-	// fallback SPA (equivalente al antiguo /* /index.html 200 de Pages).
+	// Worker único: sirve la web estática (dist) y el API del foro bajo /api/*
+	// (sin CORS: todo vive en el mismo dominio).
 	"$schema": "./node_modules/wrangler/config-schema.json",
 	"name": "proxyweb",
+	"main": "./worker/src/index.js",
 	"compatibility_date": "2026-08-22",
 	"assets": {
 		"directory": "./dist",
-		"not_found_handling": "single-page-application"
+		// Fallback SPA: cualquier ruta no-asset sirve index.html
+		"not_found_handling": "single-page-application",
+		// Las rutas del foro invocan el Worker antes de servir assets
+		"run_worker_first": ["/api/*"]
+	},
+	// Base de datos D1 del foro (cuenta The.proxy.nightmare)
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "foro-luces",
+			"database_id": "327a634f-b59b-47c1-8c49-6f827dd52ef5"
+		}
+	],
+	// Bucket R2 para imágenes, audio y avatares
+	"r2_buckets": [
+		{
+			"binding": "FILES",
+			"bucket_name": "foro-luces"
+		}
+	],
+	// El token de administración se define como secreto:
+	//   npx wrangler secret put ADMIN_TOKEN
+	"vars": {
+		// Orígenes permitidos (CORS). Con la API en el mismo dominio basta el dominio propio.
+		"ALLOWED_ORIGIN": "https://lucesdefalsocontacto.com",
+		// Límites de tamaño en bytes. El frontend los consulta en GET /api/config.
+		"MAX_AVATAR_SIZE": "1048576",
+		"MAX_IMAGE_SIZE": "5242880",
+		"MAX_AUDIO_SIZE": "8388608",
+		"MAX_IMAGES": "5",
+		"MAX_TOTAL_SIZE": "62914560"
 	}
 }
