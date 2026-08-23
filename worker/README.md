@@ -1,75 +1,62 @@
-# Foro — API de Cloudflare (plan gratuito)
+# Foro — API integrada en el Worker `proxyweb`
 
-Worker con **D1** (posts y respuestas) y **R2** (imágenes, audio y fotos de perfil).
+El foro **no es un Worker independiente**: vive dentro del mismo Worker que sirve
+la web estática (`proxyweb`). La configuración está en el `wrangler.jsonc` de la
+**raíz** del proyecto:
 
-## Despliegue paso a paso
+- `main` → `./worker/src/index.js` (el código del foro)
+- `assets.run_worker_first: ["/api/*"]` → las rutas `/api/*` van al foro y el resto
+  se sirve como estático (mismo dominio, sin CORS)
+- Bindings: **D1** (`DB`, base `foro-luces`) y **R2** (`FILES`, bucket `foro-luces`)
+- Secreto **ADMIN_TOKEN**
 
-1. **Instalar wrangler e iniciar sesión** (desde la raíz del proyecto):
+## Despliegue
 
-   ```bash
-   npm install -g wrangler   # o: npx wrangler
-   wrangler login
-   ```
+Automático: cada push a `main` dispara **Workers Builds**, que ejecuta
+`npm run build` + `npx wrangler deploy`.
 
-2. **Crear los recursos** (una sola vez):
+Manual (opcional), desde la raíz del proyecto:
 
-   ```bash
-   cd worker
-   npx wrangler d1 create foro-luces
-   npx wrangler r2 bucket create foro-luces
-   ```
+```bash
+npm run build
+npx wrangler deploy
+```
 
-   Copia el `database_id` que imprime el comando de D1 y pégalo en `wrangler.jsonc`.
+## Base de datos (solo la primera vez, o tras recrearla)
 
-3. **Crear la base de datos** (tablas):
+```bash
+npx wrangler d1 create foro-luces            # copiar database_id al wrangler.jsonc raíz
+npx wrangler r2 bucket create foro-luces
+npx wrangler d1 execute foro-luces --file=./worker/schema.sql --remote
+```
 
-   ```bash
-   npx wrangler d1 execute foro-luces --file=./schema.sql --remote
-   npx wrangler d1 execute foro-luces --file=./schema.sql --local   # para desarrollo local
-   ```
+## Secreto de administración
 
-4. **Definir el token de administración** (para borrar publicaciones):
+```bash
+npx wrangler secret put ADMIN_TOKEN
+```
 
-   ```bash
-   npx wrangler secret put ADMIN_TOKEN
-   ```
-
-   Escribe un valor largo y aleatorio. Guárdalo: lo usarás en el botón "Borrar (admin)" del foro.
-
-5. **Publicar el Worker**:
-
-   ```bash
-   npx wrangler deploy
-   ```
-
-   Te dará una URL tipo `https://foro-luces.<tu-subdominio>.workers.dev`.
-
-6. **Conectar el frontend**: crea un `.env` en la raíz del proyecto con:
-
-   ```
-   VITE_API_URL=https://foro-luces.<tu-subdominio>.workers.dev
-   ```
-
-   y vuelve a desplegar la web en Cloudflare Pages.
-
-   > Opción recomendada en producción: en vez de usar el dominio `*.workers.dev`,
-   > añade una ruta personalizada en tu dominio (ej. `api.tudominio.com/*` o
-   > `tudominio.com/api/*`) desde el panel de Cloudflare → Workers → foro-luces →
-   > Dominios y rutas. Así `VITE_API_URL` queda vacío y evitas CORS.
-
-7. **CORS**: en `wrangler.jsonc`, cambia `ALLOWED_ORIGIN` a tu dominio real
-   (ej. `"https://tudominio.com"`) para no aceptar peticiones de otros sitios.
+Valor largo y aleatorio. Se usa en el botón "Borrar (admin)" del foro.
 
 ## Desarrollo local
 
+Desde la raíz del proyecto:
+
 ```bash
-cd worker
-npx wrangler dev
+npm run build        # generar dist/
+npx wrangler dev     # sirve web + API con D1 y R2 locales simulados
 ```
 
-La API queda en `http://127.0.0.1:8787` (con D1 y R2 locales simulados).
-En la raíz del proyecto, configura `.env` con `VITE_API_URL=http://127.0.0.1:8787`
-y ejecuta `npm run dev`.
+La aplicación completa queda en `http://127.0.0.1:8787`.
+
+Para desarrollar solo el frontend con recarga en caliente (`npm run dev`),
+apunta el `.env` a un Worker local o remoto:
+
+```
+VITE_API_URL=http://127.0.0.1:8787   # si tienes `wrangler dev` corriendo
+```
+
+Vacío = peticiones relativas `/api/...` al mismo origen (comportamiento de producción).
 
 ## API
 
@@ -86,7 +73,8 @@ y ejecuta `npm run dev`.
 
 - Foto de perfil: 1 MB · Imagen: 5 MB (máx 5 por post) · Audio: 8 MB · Total por post: 60 MB
 - Las imágenes se comprimen **en el navegador** antes de subir (canvas, máx 1920 px).
-- Los límites viven en las vars de `wrangler.jsonc` y el frontend los consulta en `GET /api/config`.
+- Los límites viven en las `vars` del `wrangler.jsonc` raíz y el frontend los consulta
+  en `GET /api/config`.
 
 ## Borrado de posts
 
