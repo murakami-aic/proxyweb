@@ -44,21 +44,33 @@ function getLimits(env) {
 	}
 }
 
-function corsHeaders(env) {
-	return {
-		'access-control-allow-origin': env.ALLOWED_ORIGIN || '*',
+function corsHeaders(request, env) {
+	const allowed = (env.ALLOWED_ORIGIN || '*')
+		.split(',')
+		.map(s => s.trim())
+		.filter(Boolean)
+	const origin = request.headers.get('origin')
+	let allowOrigin = null
+	if (allowed.includes('*')) {
+		allowOrigin = '*'
+	} else if (origin && allowed.includes(origin)) {
+		allowOrigin = origin
+	}
+	const headers = {
 		'access-control-allow-methods': 'GET, POST, DELETE, OPTIONS',
 		'access-control-allow-headers': 'content-type, x-admin-token, x-author-key',
 		'access-control-max-age': '86400',
 		vary: 'origin',
 	}
+	if (allowOrigin) headers['access-control-allow-origin'] = allowOrigin
+	return headers
 }
 
-const json = (env, data, status = 200) =>
-	new Response(JSON.stringify(data), { status, headers: { ...JSON_HEADERS, ...corsHeaders(env) } })
+const json = (request, env, data, status = 200) =>
+	new Response(JSON.stringify(data), { status, headers: { ...JSON_HEADERS, ...corsHeaders(request, env) } })
 
-const badRequest = (env, message) => json(env, { error: message }, 400)
-const notFound = (env) => json(env, { error: 'No encontrado' }, 404)
+const badRequest = (request, env, message) => json(request, env, { error: message }, 400)
+const notFound = (request, env) => json(request, env, { error: 'No encontrado' }, 404)
 
 async function isAuthorized(request, env) {
 	const token = request.headers.get('x-admin-token')
@@ -150,7 +162,7 @@ async function createPost(env, request) {
 	try {
 		form = await request.formData()
 	} catch {
-		return badRequest(env, 'Se esperaba multipart/form-data')
+		return badRequest(request, env, 'Se esperaba multipart/form-data')
 	}
 
 	const limits = getLimits(env)
@@ -158,10 +170,10 @@ async function createPost(env, request) {
 	const content = (form.get('content') ?? '').toString().trim().slice(0, 5000)
 	const parentId = (form.get('parentId') ?? '').toString().trim() || null
 
-	if (!name) return badRequest(env, 'El nombre es obligatorio')
-	if (!content) return badRequest(env, 'El mensaje es obligatorio')
+	if (!name) return badRequest(request, env, 'El nombre es obligatorio')
+	if (!content) return badRequest(request, env, 'El mensaje es obligatorio')
 	if (parentId && !(await env.DB.prepare('SELECT id FROM posts WHERE id = ?').bind(parentId).first())) {
-		return badRequest(env, 'La publicación a responder no existe')
+		return badRequest(request, env, 'La publicación a responder no existe')
 	}
 
 	try {
@@ -181,7 +193,7 @@ async function createPost(env, request) {
 			imageFiles.reduce((sum, f) => sum + f.size, 0) +
 			(audioFile?.size ?? 0)
 		if (totalSize > limits.maxTotalSize) {
-			return badRequest(env, `La publicación supera el máximo total de ${Math.round(limits.maxTotalSize / 1024 / 1024)} MB`)
+			return badRequest(request, env, `La publicación supera el máximo total de ${Math.round(limits.maxTotalSize / 1024 / 1024)} MB`)
 		}
 
 		const attachments = []
@@ -211,9 +223,9 @@ async function createPost(env, request) {
 		]
 		await env.DB.batch(stmts)
 
-		return json(env, { id }, 201)
+		return json(request, env, { id }, 201)
 	} catch (err) {
-		return badRequest(env, err.message || 'Error al subir el archivo')
+		return badRequest(request, env, err.message || 'Error al subir el archivo')
 	}
 }
 
@@ -225,7 +237,7 @@ async function deletePost(env, request, id) {
 			? await env.DB.prepare('SELECT author_key_hash FROM posts WHERE id = ?').bind(id).first()
 			: null
 		const owns = row?.author_key_hash && key && row.author_key_hash === (await sha256Hex(key))
-		if (!owns) return json(env, { error: 'No autorizado' }, 401)
+		if (!owns) return json(request, env, { error: 'No autorizado' }, 401)
 	}
 
 	// Los adjuntos viven en R2; se listan antes del CASCADE
@@ -247,7 +259,7 @@ async function deletePost(env, request, id) {
 			.filter(Boolean)
 			.map(key => env.FILES.delete(key))
 	)
-	return json(env, { ok: true })
+	return json(request, env, { ok: true })
 }
 
 async function serveFile(env, key) {
@@ -264,18 +276,18 @@ async function serveFile(env, key) {
 export default {
 	async fetch(request, env) {
 		if (request.method === 'OPTIONS') {
-			return new Response(null, { status: 204, headers: corsHeaders(env) })
+			return new Response(null, { status: 204, headers: corsHeaders(request, env) })
 		}
 
 		const url = new URL(request.url)
 		const parts = url.pathname.split('/').filter(Boolean) // ['api', ...]
 
 		try {
-			if (parts[0] !== 'api') return notFound(env)
+			if (parts[0] !== 'api') return notFound(request, env)
 
 			if (parts[1] === 'config' && parts.length === 2 && request.method === 'GET') {
 				const limits = getLimits(env)
-				return json(env, { ...limits, acceptedImageTypes: IMAGE_TYPES, acceptedAudioTypes: AUDIO_TYPES })
+				return json(request, env, { ...limits, acceptedImageTypes: IMAGE_TYPES, acceptedAudioTypes: AUDIO_TYPES })
 			}
 
 			if (parts[1] === 'files' && parts.length >= 3 && request.method === 'GET') {
@@ -284,13 +296,13 @@ export default {
 
 			if (parts[1] === 'threads') {
 				if (parts.length === 2) {
-					if (request.method === 'GET') return json(env, { threads: await listThreads(env, request) })
+					if (request.method === 'GET') return json(request, env, { threads: await listThreads(env, request) })
 					if (request.method === 'POST') return createPost(env, request)
 				}
 				if (parts.length === 3) {
 					if (request.method === 'GET') {
 						const thread = await getThread(env, request, parts[2])
-						return thread ? json(env, thread) : notFound(env)
+						return thread ? json(request, env, thread) : notFound(request, env)
 					}
 					if (request.method === 'DELETE') {
 						return deletePost(env, request, parts[2])
@@ -298,9 +310,9 @@ export default {
 				}
 			}
 
-			return notFound(env)
+			return notFound(request, env)
 		} catch (err) {
-			return json(env, { error: 'Error interno', detail: err.message }, 500)
+			return json(request, env, { error: 'Error interno', detail: err.message }, 500)
 		}
 	},
 }

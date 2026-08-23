@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import ImageModal from '../components/ImageModal'
-import { imagenes } from '../data/imagenes'
+
+const TOTAL_IMAGENES = 20
+
+// Placeholder: los datos de imágenes ya no vienen de '../data/imagenes' (eliminado)
+const imagenes = Array.from({ length: TOTAL_IMAGENES }, (_, i) => ({
+	id: `img-${i + 1}`,
+	title: `Imagen ${i + 1}`,
+	url: '/urlfalsa.png',
+}))
 
 const breakpoints = [
 	{ minWidth: 1536, cols: 3 },

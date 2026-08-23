@@ -99,7 +99,7 @@ const AudioPlayer = () => {
 	}
 
 	return (
-		<div className='fixed bottom-0 left-0 w-full border px-1 md:px-10 py-1 bg-white z-40'>
+		<div className='fixed bottom-0 left-0 w-full border px-1 md:px-10 py-1 bg-primary-50 z-40'>
 
 			<audio
 				src={currentMusic?.url}
@@ -115,7 +115,7 @@ const AudioPlayer = () => {
 				<div className='flex w-full sm:w-2/5 justify-between sm:justify-around'>
 
 					<img
-						src={currentMusic?.portada}
+						src='/imagenes/gato_reproductor_musica.webp'
 						alt=''
 						aria-hidden='true'
 						width='50'
@@ -134,7 +134,7 @@ const AudioPlayer = () => {
 							className='w-10 aspect-square flex items-center justify-center cursor-pointer active:bg-gray-200 focus-visible:outline-2 focus-visible:outline-primary-500 touch-manipulation'
 							onClick={skipBack}
 						>
-							<img src='/svg/next.svg' alt='' aria-hidden='true' className='w-5 h-5' />
+							<img src='/svg/next.svg' alt='' aria-hidden='true' className='w-5 h-5 text-primary-50' />
 						</button>
 
 						<button
@@ -178,7 +178,7 @@ const AudioPlayer = () => {
 					<div className='tabular-nums'>{formatTime(currentTime)}</div>
 
 					<div
-						className='bg-gray-300 h-3 w-full cursor-pointer touch-manipulation'
+						className='bg-primary-400 h-3 w-full cursor-pointer touch-manipulation border'
 						onClick={checkTime}
 						ref={clickRef}
 						role='slider'
@@ -191,7 +191,7 @@ const AudioPlayer = () => {
 						onKeyDown={onProgressKeyDown}
 					>
 						<div
-							className='bg-primary-600 h-full transition-[width] duration-300 ease-linear'
+							className='bg-primary-50 h-full transition-[width] duration-300 ease-linear'
 							style={{ width: `${progress * 100}%` }}
 						></div>
 					</div>

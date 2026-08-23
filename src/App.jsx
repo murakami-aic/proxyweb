@@ -1,6 +1,5 @@
 import { Route, Routes, NavLink, Navigate, useLocation } from 'react-router-dom'
-import { Home, Personajes, Comic, Galeria, Foro, ForoHilo } from './routes'
-import ComicDetail from './routes/ComicDetail'
+import { Home, Personajes, Comic, ComicDetail, Galeria, Foro, ForoHilo } from './routes'
 import AudioPlayer from './components/AudioPlayer'
 
 const navLinkClass = ({ isActive }) =>
@@ -20,20 +19,20 @@ function App() {
 				Saltar al contenido
 			</a>
 
-			<div className='border-x flex gap-3.5 flex-col w-full px-2 max-w-[900px] flex-1 min-h-0 pb-20'>
+			<div className='border-x flex gap-3.5 flex-col w-full px-2 max-w-[900px] flex-1 min-h-0 pb-20 bg-main'>
 
-				<div className={`w-full overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-in-out motion-reduce:transition-none ${location.pathname === '/' ? 'max-h-[15rem] opacity-100 mt-3.5' : 'max-h-0 opacity-0 mt-0'
+				<div className={`w-full overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-in-out motion-reduce:transition-none ${location.pathname === '/' ? 'max-h-[20rem] opacity-100 mt-3.5' : 'max-h-0 opacity-0 mt-0'
 				}`}>
 					<img
-						src='https://picsum.photos/seed/lucesbanner/1200/400'
+						src='/imagenes/titulo.webp'
 						alt='Luces de falso contacto'
 						width='1200'
 						height='400'
 						fetchPriority='high'
-						className='border w-full min-h-16 h-[clamp(9rem,20vw,15rem)] object-cover'
+						className='border w-full'
 					/>
 				</div>
-				<nav className={`sticky top-0 z-10 bg-white py-1 w-full grid grid-cols-5 text-center items-center text-sm md:text-base border-b transition-[margin] duration-300 motion-reduce:transition-none ${location.pathname === '/' ? 'mt-3.5' : 'mt-0'
+				<nav className={`sticky top-0 z-10 bg-primary-400 text-primary-50 py-1 w-full grid grid-cols-5 text-center items-center text-sm md:text-base border-b transition-[margin] duration-300 motion-reduce:transition-none ${location.pathname === '/' ? 'mt-3.5' : 'mt-0'
 				}`}>
 					<NavLink to='/' end className={navLinkClass}>inicio</NavLink>
 					<NavLink to='/foro' className={navLinkClass}>foro</NavLink>

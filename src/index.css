@@ -1,36 +1,39 @@
 @import "tailwindcss";
+
 @theme {
-  --color-main:  oklch(0.9788 0.0858 136.38);
-  --color-primary-50:  oklch(0.99 0.01 95);
+  --color-main: oklch(0.99 0.01 95);
+  --color-primary-50: oklch(100 0 180);
   --color-primary-100: oklch(0.97 0.015 95);
   --color-primary-300: oklch(0.94 0.03 95);
   --color-primary-200: oklch(0.95 0.02 95);
-  --color-primary-400: oklch(0.88 0.035 95);
-  --color-primary-500: oklch(0.82 0.04 95);
-  --color-primary-600: oklch(0.72 0.045 95);
-  --color-primary-700: oklch(0.62 0.04 95);
-  --color-primary-800: oklch(0.52 0.035 95);
-  --color-primary-900: oklch(0.42 0.03 95);
+  --color-primary-400: oklch(0 0 0);
 }
+
 @font-face {
   font-family: 'Terminus';
   src: url('/fonts/terminus/Terminus.woff2') format('woff2'),
-       url('/fonts/terminus/Terminus.woff') format('woff');
+    url('/fonts/terminus/Terminus.woff') format('woff');
   font-style: normal;
   font-weight: 400;
   font-display: swap;
 }
+
 html {
   color-scheme: light;
-  background-color: oklch(0.99 0.01 95);
+  background-color: var(--color-primary-50);
 }
+
 body {
   font-family: 'Terminus', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
+
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

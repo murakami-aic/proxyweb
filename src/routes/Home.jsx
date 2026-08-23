@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom'
-import { imagenes } from '../data/imagenes'
+import { imagenesHome } from '../data/home_imagenes'
 
 const supportItems = [
-	{ id: 'share', img: 3, text: 'Siguiendo y compartiendo!!' },
-	{ id: 'donate', img: 2, text: 'Compra un ka-fesito o dona en Patreon' },
-	{ id: 'comment', img: 5, text: 'Comenta y crea comunidad' },
-	{ id: 'watch', img: 0, text: 'Mirando mis animaciones' },
+	{ id: 'share', img: 'sigue-y-comparte', text: 'Siguiendo y compartiendo!!' },
+	{ id: 'donate', img: 'compra-cafesito', text: 'Compra un ka-fesito o dona en Patreon' },
+	{ id: 'comment', img: 'compartir-comunidad', text: 'Comenta y crea comunidad' },
+	{ id: 'watch', img: 'mira-animaciones', text: 'Mirando mis animaciones' },
 ]
 
 function Home() {
@@ -14,7 +14,7 @@ function Home() {
 			<section className='border p-5 flex flex-col items-center gap-3 bg-primary-50'>
 				<h2 className='font-extrabold text-3xl text-center'>Sobre el WebComic</h2>
 				<img
-					src={imagenes[1].url}
+					src={imagenesHome['sara-web-comic'].url}
 					alt='Ilustración de Sarah y el Destino'
 					width='360'
 					height='360'
@@ -39,7 +39,7 @@ function Home() {
 			<section className='border p-5 bg-primary-50'>
 				<div className='sm:float-right sm:ml-4 sm:mb-2'>
 					<img
-						src={imagenes[2].url}
+						src={imagenesHome['sobre-web-comic'].url}
 						alt='Proxy dibujando'
 						width='140'
 						height='140'
@@ -69,16 +69,16 @@ function Home() {
 					{supportItems.map((item) => (
 						<article
 							key={item.id}
-							className='flex flex-col gap-2 border p-2 bg-white'
+							className='flex flex-col gap-2 p-2'
 						>
 							<img
-								src={imagenes[item.img].url}
+								src={imagenesHome[item.img].url}
 								alt=''
 								aria-hidden='true'
 								width='400'
 								height='400'
 								loading='lazy'
-								className='w-full aspect-square object-cover'
+								className='w-full aspect-square object-contain'
 							/>
 							<p className='text-sm'>{item.text}</p>
 						</article>
@@ -93,7 +93,7 @@ function Home() {
 				</p>
 				<p className='mt-3'>
 					<Link
-						to='/personajes'
+						to='/home'
 						className='underline focus-visible:outline-2 focus-visible:outline-primary-500'
 					>
 						Conoce a los personajes

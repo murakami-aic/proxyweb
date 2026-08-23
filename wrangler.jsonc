@@ -30,8 +30,9 @@
 	// El token de administración se define como secreto:
 	//   npx wrangler secret put ADMIN_TOKEN
 	"vars": {
-		// Orígenes permitidos (CORS). Con la API en el mismo dominio basta el dominio propio.
-		"ALLOWED_ORIGIN": "https://lucesdefalsocontacto.com",
+		// Orígenes permitidos (CORS), separados por coma.
+		// El dominio propio + localhost para desarrollo (Forma B: npm run dev).
+		"ALLOWED_ORIGIN": "https://lucesdefalsocontacto.com,http://localhost:5173",
 		// Límites de tamaño en bytes. El frontend los consulta en GET /api/config.
 		"MAX_AVATAR_SIZE": "1048576",
 		"MAX_IMAGE_SIZE": "5242880",

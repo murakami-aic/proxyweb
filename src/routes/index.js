@@ -1,5 +1,6 @@
 export { default as Home } from './Home'
 export { default as Comic } from './Comic'
+export { default as ComicDetail } from './ComicDetail'
 export { default as Galeria } from './Galeria'
 export { default as Foro } from './Foro'
 export { default as ForoHilo } from './ForoHilo'
