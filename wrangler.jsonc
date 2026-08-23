@@ -1,0 +1,11 @@
+{
+	// Worker con Static Assets: sirve el build de Vite (dist) y aplica
+	// fallback SPA (equivalente al antiguo /* /index.html 200 de Pages).
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "proxyweb",
+	"compatibility_date": "2026-08-22",
+	"assets": {
+		"directory": "./dist",
+		"not_found_handling": "single-page-application"
+	}
+}
