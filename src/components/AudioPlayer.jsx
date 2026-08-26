@@ -99,7 +99,7 @@ const AudioPlayer = () => {
 	}
 
 	return (
-		<div className='fixed bottom-0 left-0 w-full border px-1 md:px-10 py-1 bg-primary-50 z-40'>
+		<div className='fixed bottom-0 left-0 w-full border px-1 md:px-10 py-1 bg-gray-50 z-40 text-gray-300'>
 
 			<audio
 				src={currentMusic?.url}
@@ -110,20 +110,19 @@ const AudioPlayer = () => {
 				preload='none'
 			/>
 
-			<div className='flex gap-1 md:gap-4'>
+			<div className='flex gap-1 md:gap-4 justify-center'>
 
-				<div className='flex w-full sm:w-2/5 justify-between sm:justify-around'>
+				<div className='flex w-full max-w-[450px] justify-between'>
 
 					<img
 						src='/imagenes/gato_reproductor_musica.webp'
 						alt=''
 						aria-hidden='true'
 						width='50'
-						height='50'
-						className='h-[50px] aspect-square object-cover'
+						className='w-full max-w-[50px] h-auto aspect-auto object-contain'
 					/>
 
-					<h3 className='max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap flex justify-center items-center'>
+					<h3 className='w-full max-w-[250px] overflow-hidden text-ellipsis whitespace-nowrap flex justify-center items-center'>
 						{currentMusic?.name} - {currentMusic?.artist}
 					</h3>
 
@@ -131,7 +130,7 @@ const AudioPlayer = () => {
 						<button
 							type='button'
 							aria-label='Canción anterior'
-							className='w-10 aspect-square flex items-center justify-center cursor-pointer active:bg-gray-200 focus-visible:outline-2 focus-visible:outline-primary-500 touch-manipulation'
+							className='w-8 aspect-square flex items-center justify-center cursor-pointer active:bg-gray-100 focus-visible:outline-2 focus-visible:outline-primary-500 touch-manipulation'
 							onClick={skipBack}
 						>
 							<img src='/svg/next.svg' alt='' aria-hidden='true' className='w-5 h-5 text-primary-50' />
@@ -141,7 +140,7 @@ const AudioPlayer = () => {
 							type='button'
 							aria-label={isPlaying ? 'Pausar' : 'Reproducir'}
 							aria-pressed={isPlaying}
-							className={`w-10 aspect-square flex items-center justify-center cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-500 touch-manipulation ${isPlaying ? 'bg-gray-200' : ''}`}
+							className={`w-8 aspect-square flex items-center justify-center cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-500 touch-manipulation ${isPlaying ? 'bg-gray-100' : ''}`}
 							onClick={playPause}
 						>
 							<img
@@ -155,7 +154,7 @@ const AudioPlayer = () => {
 						<button
 							type='button'
 							aria-label='Canción siguiente'
-							className='w-10 aspect-square flex items-center justify-center cursor-pointer active:bg-gray-200 focus-visible:outline-2 focus-visible:outline-primary-500 touch-manipulation'
+							className='w-8 aspect-square flex items-center justify-center cursor-pointer active:bg-gray-100 focus-visible:outline-2 focus-visible:outline-primary-500 touch-manipulation'
 							onClick={skipNext}
 						>
 							<img src='/svg/next.svg' alt='' aria-hidden='true' className='w-5 h-5 rotate-180' />
@@ -165,7 +164,7 @@ const AudioPlayer = () => {
 							type='button'
 							aria-label='Reproducción automática'
 							aria-pressed={autoplay}
-							className={`w-10 aspect-square flex items-center justify-center cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-500 touch-manipulation ${autoplay ? 'bg-gray-200' : ''}`}
+							className={`w-8 aspect-square flex items-center justify-center cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-500 touch-manipulation ${autoplay ? 'bg-gray-200' : ''}`}
 							onClick={toggleAutoplay}
 						>
 							<img src='/svg/loop.svg' alt='' aria-hidden='true' className='w-5 h-5' />
@@ -174,11 +173,11 @@ const AudioPlayer = () => {
 					</div>
 				</div>
 
-				<div className='hidden sm:flex sm:flex-3/5 justify-center items-center gap-2'>
+				<div className='hidden sm:flex w-full max-w-[610px] justify-center items-center gap-2'>
 					<div className='tabular-nums'>{formatTime(currentTime)}</div>
 
 					<div
-						className='bg-primary-400 h-3 w-full cursor-pointer touch-manipulation border'
+						className='bg-gray-300 h-3 w-full cursor-pointer touch-manipulation border'
 						onClick={checkTime}
 						ref={clickRef}
 						role='slider'
