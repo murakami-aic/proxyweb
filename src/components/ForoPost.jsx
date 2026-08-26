@@ -26,16 +26,18 @@ const Avatar = ({ post }) =>
 const Attachments = ({ attachments }) => {
 	if (!attachments?.length) return null
 	return (
-		<div className='flex flex-col gap-2'>
-			{attachments.filter(a => a.type === 'image').map(a => (
-				<img
-					key={a.url}
-					src={fileUrl(a.url)}
-					alt='Imagen adjunta'
-					loading='lazy'
-					className='border max-w-full max-h-[400px] w-auto object-contain self-start'
-				/>
-			))}
+		<div className='w-full flex flex-col gap-2'>
+			<div className='w-full columns-2 sm:columns-3'>
+				{attachments.filter(a => a.type === 'image').map(a => (
+					<img
+						key={a.url}
+						src={fileUrl(a.url)}
+						alt='Imagen adjunta'
+						loading='lazy'
+						className='w-full h-auto aspect-auto mb-3 border object-contain break-inside-avoid'
+					/>
+				))}
+			</div>
 			{attachments.filter(a => a.type === 'audio').map(a => (
 				<audio key={a.url} src={fileUrl(a.url)} controls preload='none' className='w-full max-w-md' />
 			))}
@@ -49,6 +51,7 @@ const Attachments = ({ attachments }) => {
  * Cada usuario puede borrar sus propios posts (post.owner); el admin, todos.
  */
 function ForoPost({ post, to, linkText, onDeleted }) {
+
 	const [showDelete, setShowDelete] = useState(false)
 	const [token, setToken] = useState('')
 	const [error, setError] = useState(null)
@@ -82,7 +85,7 @@ function ForoPost({ post, to, linkText, onDeleted }) {
 		: post.content
 
 	return (
-		<article className='flex flex-col gap-2 border p-3 bg-white'>
+		<article className='flex flex-col gap-2 border p-3 bg-gray-50 text-gray-300'>
 			<header className='flex items-center gap-2 flex-wrap'>
 				<Avatar post={post} />
 				<div className='min-w-0'>
@@ -92,7 +95,7 @@ function ForoPost({ post, to, linkText, onDeleted }) {
 					</time>
 				</div>
 				{post.reply_count !== undefined && (
-					<span className='ml-auto text-xs bg-primary-100 border px-2 py-0.5'>
+					<span className='ml-auto text-xs'>
 						{post.reply_count} {post.reply_count === 1 ? 'respuesta' : 'respuestas'}
 					</span>
 				)}
@@ -101,12 +104,16 @@ function ForoPost({ post, to, linkText, onDeleted }) {
 			{to ? (
 				<Link
 					to={to}
-					className='text-pretty whitespace-pre-wrap break-words underline focus-visible:outline-2 focus-visible:outline-primary-500'
+					className='text-pretty whitespace-pre-wrap break-words focus-visible:outline-2 focus-visible:outline-primary-500'
 				>
 					{excerpt}
+
 				</Link>
 			) : (
-				<p className='text-pretty whitespace-pre-wrap break-words'>{excerpt}</p>
+				<>
+					<p className='text-pretty whitespace-pre-wrap break-words'>{excerpt}</p>
+				</>
+
 			)}
 
 			<Attachments attachments={post.attachments} />
@@ -121,8 +128,8 @@ function ForoPost({ post, to, linkText, onDeleted }) {
 			)}
 
 			{onDeleted && (
-				<div className='text-sm border-t pt-2 mt-1 flex flex-wrap gap-3 items-center'>
-					{post.owner && (
+				<div className='text-sm border-t pt-2 mt-1 flex flex-wrap gap-3 items-center text-gray-300'>
+					{post.owner ? (
 						<button
 							type='button'
 							onClick={handleDeleteOwn}
@@ -131,11 +138,13 @@ function ForoPost({ post, to, linkText, onDeleted }) {
 						>
 							{deletingOwn ? 'Borrando...' : 'Borrar mi post'}
 						</button>
+					) : (
+						''
 					)}
 
 					{showDelete ? (
 						<span className='flex flex-wrap gap-2 items-center'>
-							<label className='text-xs' htmlFor={`token-${post.id}`}>Token admin:</label>
+							<label className='text-xs' htmlFor={`token-${post.id}`}>Admin:</label>
 							<input
 								id={`token-${post.id}`}
 								type='password'
@@ -162,9 +171,9 @@ function ForoPost({ post, to, linkText, onDeleted }) {
 						<button
 							type='button'
 							onClick={() => setShowDelete(true)}
-							className='text-xs text-gray-500 underline cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-500'
+							className='opacity-0 text-xs text-gray-500 underline cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-500'
 						>
-							Borrar (admin)
+							(admin)
 						</button>
 					)}
 

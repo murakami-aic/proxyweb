@@ -3,10 +3,23 @@
 @theme {
   --color-main: oklch(0.99 0.01 95);
   --color-primary-50: oklch(100 0 180);
-  --color-primary-100: oklch(0.97 0.015 95);
-  --color-primary-300: oklch(0.94 0.03 95);
-  --color-primary-200: oklch(0.95 0.02 95);
   --color-primary-400: oklch(0 0 0);
+
+  --color-gray-50: #dedede;
+  --color-gray-100: #afafaf;
+  --color-gray-200: #7b7b7b;
+  --color-gray-300: #444444;
+  --color-gray-400: #171717;
+
+  --color-granate-50: #e3001f;
+  --color-granate-100: #b4001e;
+  --color-granate-200: #74040d;
+  --color-granate-300: #450208;
+
+  --color-green-50: #add35a;
+  --color-green-100: #90ac53;
+  --color-green-200: #677a3d;
+  --color-green-300: #3f501b;
 }
 
 @font-face {
@@ -20,13 +33,14 @@
 
 html {
   color-scheme: light;
-  background-color: var(--color-primary-50);
+  background-color: var(--color-gray-300);
 }
 
 body {
   font-family: 'Terminus', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  color: whitesmoke;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -39,4 +53,25 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+section {
+
+  h2 {
+    font-size: 24px;
+    letter-spacing: -0.05em;
+    text-align: center;
+    font-weight: 500;
+  }
+
+  h3 {
+    font-size: 20px;
+    letter-spacing: -0.05em;
+  }
+
+  p {
+    font-size: 16px;
+    hyphens: auto;
+  }
+
 }

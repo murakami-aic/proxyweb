@@ -35,17 +35,18 @@ function Foro() {
 
 	return (
 		<div className='flex flex-col gap-y-6 sm:px-4 md:px-10 lg:px-20'>
-			<section aria-labelledby='foro-heading' className='border p-5 flex flex-col items-center gap-3 bg-primary-50'>
-				<h2 id='foro-heading' className='font-extrabold text-3xl text-center'>Foro</h2>
-				<p className='text-pretty text-center max-w-prose'>
-					Espacio abierto de la comunidad de Luces de Falso Contacto: comparte tus dibujos,
-					música, teorías del cómic o lo que quieras. No necesitas cuenta, solo un nombre.
+			<section aria-labelledby='foro-heading' className='flex flex-col items-center gap-3'>
+				<h2 id='foro-heading'>Foro</h2>
+				<p className='text-center max-w-prose'>
+					Cuéntale a Sarah, el monstruo, tu secreto y ella se lo comerá nwn)/
+					<br></br>
+					Espacio para soltar todo lo que no puedes decir en voz alta✮ 𖹭. ⋆ ˚｡𖦹 ⋆｡°✩
 				</p>
 				<button
 					type='button'
 					onClick={() => setShowForm(prev => !prev)}
 					aria-expanded={showForm}
-					className='border bg-white px-3 py-1 text-sm cursor-pointer active:bg-gray-200 focus-visible:outline-2 focus-visible:outline-primary-500'
+					className='border px-3 py-1 text-sm cursor-pointer hover:bg-gray-200'
 				>
 					{showForm ? 'Cerrar formulario' : 'Nueva publicación'}
 				</button>

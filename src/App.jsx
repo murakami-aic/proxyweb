@@ -7,6 +7,10 @@ const navLinkClass = ({ isActive }) =>
 
 function App() {
 
+	document.addEventListener('dragstart', (e) => {
+		if (e.target.tagName === 'IMG') e.preventDefault()
+	})
+
 	const location = useLocation()
 
 	return (
@@ -19,23 +23,26 @@ function App() {
 				Saltar al contenido
 			</a>
 
-			<div className='border-x flex gap-3.5 flex-col w-full px-2 max-w-[900px] flex-1 min-h-0 pb-20 bg-main'>
+			<div className='bg-primary-400 border-x flex gap-3.5 flex-col w-full px-2 max-w-[900px] flex-1 min-h-0 pb-20'>
 
 				<div className={`w-full overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-in-out motion-reduce:transition-none ${location.pathname === '/' ? 'max-h-[20rem] opacity-100 mt-3.5' : 'max-h-0 opacity-0 mt-0'
-				}`}>
+					}`}>
 					<img
 						src='/imagenes/titulo.webp'
 						alt='Luces de falso contacto'
 						width='1200'
 						height='400'
 						fetchPriority='high'
-						className='border w-full'
+						className='w-full'
 					/>
 				</div>
-				<nav className={`sticky top-0 z-10 bg-primary-400 text-primary-50 py-1 w-full grid grid-cols-5 text-center items-center text-sm md:text-base border-b transition-[margin] duration-300 motion-reduce:transition-none ${location.pathname === '/' ? 'mt-3.5' : 'mt-0'
-				}`}>
+				<nav className={`bg-gray-50 text-gray-300 sticky top-0 z-10 py-1 w-full grid grid-cols-5 text-center items-center text-sm md:text-base border-b transition-[margin] duration-300 motion-reduce:transition-none ${location.pathname === '/' ? 'mt-3.5' : 'mt-0'
+					}`}>
 					<NavLink to='/' end className={navLinkClass}>inicio</NavLink>
 					<NavLink to='/foro' className={navLinkClass}>foro</NavLink>
+					<NavLink><span className='text-gray-100'>personajes</span></NavLink>
+					<NavLink><span className='text-gray-100'>archivo</span></NavLink>
+					<NavLink><span className='text-gray-100'>diario</span></NavLink>
 				</nav>
 
 				<main id='main' className='w-full flex-1 min-h-0 flex flex-col' tabIndex={-1}>

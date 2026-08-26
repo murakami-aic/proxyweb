@@ -11,10 +11,10 @@ const IMAGE_QUALITY = 0.8
 const mb = (bytes) => `${Math.round(bytes / 1024 / 1024)} MB`
 
 const inputClass =
-	'w-full border bg-white px-2 py-1 text-sm focus-visible:outline-2 focus-visible:outline-primary-500'
+	'w-full border px-2 py-1 text-sm focus-visible:outline-2 focus-visible:outline-primary-500'
 
 const fileLabelClass =
-	'border bg-white px-2 py-1 text-sm cursor-pointer inline-flex items-center gap-1 active:bg-gray-200 focus-within:outline-2 focus-within:outline-primary-500'
+	'border px-2 py-1 text-sm cursor-pointer inline-flex items-center gap-1 active:bg-gray-50 focus-within:outline-2 focus-within:outline-primary-500'
 
 const fileToDataUrl = (file) =>
 	new Promise((resolve) => {
@@ -171,7 +171,7 @@ function ForoForm({ parentId, onCreated }) {
 	}
 
 	return (
-		<form ref={formRef} onSubmit={handleSubmit} className='flex flex-col gap-2 border p-3 bg-primary-100'>
+		<form ref={formRef} onSubmit={handleSubmit} className='flex flex-col gap-2 '>
 			<p className='text-sm font-semibold'>
 				{parentId ? 'Responder en el hilo' : 'Nueva publicación'}
 			</p>
@@ -200,7 +200,7 @@ function ForoForm({ parentId, onCreated }) {
 							className='w-6 h-6 aspect-square object-cover border'
 						/>
 					) : (
-						<span>Foto de perfil</span>
+						<span></span>
 					)}
 					<input
 						type='file'
@@ -208,7 +208,7 @@ function ForoForm({ parentId, onCreated }) {
 						className='sr-only'
 						onChange={handleAvatarChange}
 					/>
-					<span className='text-gray-600 text-xs'>
+					<span className=''>
 						{avatarFile ? 'Nueva foto' : avatarPreview ? 'Cambiada al publicar' : 'Elegir foto'}
 					</span>
 				</label>
@@ -237,7 +237,7 @@ function ForoForm({ parentId, onCreated }) {
 						onChange={handleImagesChange}
 					/>
 					{images.length > 0 && (
-						<span className='text-gray-600 max-w-[120px] truncate'>
+						<span className=' max-w-[120px] truncate'>
 							{images.map(f => f.name).join(', ')}
 						</span>
 					)}
@@ -251,7 +251,7 @@ function ForoForm({ parentId, onCreated }) {
 						className='sr-only'
 						onChange={(e) => setAudio(e.target.files[0] ?? null)}
 					/>
-					<span className='text-gray-600 max-w-[120px] truncate'>{audio ? audio.name : ''}</span>
+					<span className=' max-w-[120px] truncate'>{audio ? audio.name : ''}</span>
 				</label>
 			</div>
 
@@ -260,15 +260,14 @@ function ForoForm({ parentId, onCreated }) {
 			<button
 				type='submit'
 				disabled={sending}
-				className='self-start border bg-white px-3 py-1 text-sm cursor-pointer active:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-primary-500'
+				className='self-start border mt-3  px-3 py-1 text-sm cursor-pointer active:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-primary-500'
 			>
 				{sending ? 'Publicando...' : 'Publicar'}
 			</button>
 
-			<p className='text-xs text-gray-600'>
-				Perfil {mb(config?.maxAvatarSize ?? 1048576)} · imagen {mb(config?.maxImageSize ?? 5242880)} ·
-				audio {mb(config?.maxAudioSize ?? 8388608)} · máx {config?.maxImages ?? 5} imágenes.
-				Las imágenes se comprimen en tu navegador antes de subir.
+			<p className='text-xs text-gray-50'>
+				Perfil {mb(config?.maxAvatarSize ?? 1048576)} · imagen {mb(config?.maxImageSize ?? 5242880)}
+				(máx {config?.maxImages ?? 5}) · imágenes audio {mb(config?.maxAudioSize ?? 8388608)}.
 			</p>
 		</form>
 	)
